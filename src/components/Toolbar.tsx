@@ -42,8 +42,9 @@ export function Toolbar({
   const handleRename = () => {
     if (renameName.trim() && activeWorkspaceId) {
       onRenameWorkspace(activeWorkspaceId, renameName.trim())
+      setRenaming(false)  // only close on success
     }
-    setRenaming(false)
+    // empty: stay open, user can Escape to cancel
   }
 
   const handleCancelRename = () => {
@@ -86,7 +87,7 @@ export function Toolbar({
               if (e.key === "Enter") handleRename()
               if (e.key === "Escape") handleCancelRename()
             }}
-            onBlur={handleCancelRename}
+            onBlur={handleRename}
             placeholder="Workspace name..."
             className="bg-[#21262d] text-zinc-200 text-xs border border-[#30363d] rounded px-2 py-0.5 w-36 outline-none"
           />
@@ -123,7 +124,7 @@ export function Toolbar({
             )}
             {workspaces.length > 1 && (
               <button
-                onClick={() => onDeleteWorkspace(activeWorkspaceId!)}
+                onClick={() => activeWorkspaceId && onDeleteWorkspace(activeWorkspaceId)}
                 className="text-zinc-600 hover:text-zinc-400 text-xs"
                 title="Delete workspace"
               >

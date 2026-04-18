@@ -178,6 +178,13 @@ export default function App() {
     setActiveSession(session?.id ?? null)
   }
 
+  const handleDeleteWorkspace = (id: string) => {
+    removeWorkspace(id)
+    const newActiveId = useSessionStore.getState().activeWorkspaceId
+    if (newActiveId) handleSwitchWorkspace(newActiveId)
+    else setActiveSession(null)
+  }
+
   const handleNewSession = async (values: NewSessionValues) => {
     if (!activeWorkspaceId) return
     setShowDialog(false)
@@ -208,7 +215,7 @@ export default function App() {
         onSwitchWorkspace={handleSwitchWorkspace}
         onCreateWorkspace={addWorkspace}
         onRenameWorkspace={renameWorkspace}
-        onDeleteWorkspace={removeWorkspace}
+        onDeleteWorkspace={handleDeleteWorkspace}
         onNewSession={() => setShowDialog(true)}
       />
 

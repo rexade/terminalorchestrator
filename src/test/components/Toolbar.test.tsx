@@ -35,4 +35,25 @@ describe("Toolbar", () => {
     rerender(<Toolbar {...baseProps} workspaces={[ws1, ws2]} />)
     expect(screen.getByText("×")).toBeTruthy()
   })
+
+  it("pressing Enter with a valid name calls onRenameWorkspace and closes input", () => {
+    const onRenameWorkspace = vi.fn()
+    render(<Toolbar {...baseProps} onRenameWorkspace={onRenameWorkspace} />)
+    fireEvent.click(screen.getByText("ren"))
+    const input = screen.getByDisplayValue("CloudLab")
+    fireEvent.change(input, { target: { value: "  NewName  " } })
+    fireEvent.keyDown(input, { key: "Enter" })
+    expect(onRenameWorkspace).toHaveBeenCalledWith("ws1", "NewName")
+    expect(screen.queryByDisplayValue("NewName")).toBeNull()
+  })
+
+  it("pressing Enter with empty input keeps rename input open", () => {
+    render(<Toolbar {...baseProps} />)
+    fireEvent.click(screen.getByText("ren"))
+    const input = screen.getByDisplayValue("CloudLab")
+    fireEvent.change(input, { target: { value: "" } })
+    fireEvent.keyDown(input, { key: "Enter" })
+    // input should still be visible
+    expect(screen.getByDisplayValue("")).toBeTruthy()
+  })
 })
