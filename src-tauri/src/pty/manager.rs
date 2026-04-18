@@ -39,9 +39,11 @@ pub fn resolve_cwd(cwd: &str) -> std::path::PathBuf {
 
 /// Spawns a PTY and returns the writer handle.
 /// Output is forwarded via the provided callback on a background thread.
-pub fn spawn_pty<F>(config: PtySpawnConfig, on_output: F) -> Result<SpawnedPty, String>
+/// `on_exit` is called once after the reader loop terminates (shell exited or error).
+pub fn spawn_pty<F, G>(config: PtySpawnConfig, on_output: F, on_exit: G) -> Result<SpawnedPty, String>
 where
     F: Fn(Vec<u8>) + Send + 'static,
+    G: Fn() + Send + 'static,
 {
     let pty_system = NativePtySystem::default();
     let pair = pty_system
@@ -68,6 +70,7 @@ where
                 Ok(n) => on_output(buf[..n].to_vec()),
             }
         }
+        on_exit();
     });
 
     Ok(SpawnedPty {
@@ -106,5 +109,40 @@ mod tests {
         assert!(cfg.cols > 0);
         assert!(cfg.rows > 0);
         assert!(!cfg.shell.is_empty());
+    }
+
+    #[test]
+    fn on_exit_called_when_shell_exits() {
+        use std::io::Write;
+        use std::sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc,
+        };
+
+        let called = Arc::new(AtomicBool::new(false));
+        let called_clone = called.clone();
+
+        let config = PtySpawnConfig::default();
+        let mut spawned = spawn_pty(
+            config,
+            |_| {},
+            move || {
+                called_clone.store(true, Ordering::SeqCst);
+            },
+        )
+        .expect("spawn_pty failed");
+
+        // Send exit command
+        spawned.writer.write_all(b"exit\r\n").unwrap();
+
+        // Wait up to 5s
+        let start = std::time::Instant::now();
+        while !called.load(Ordering::SeqCst) && start.elapsed().as_secs() < 5 {
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+        assert!(
+            called.load(Ordering::SeqCst),
+            "on_exit was not called within 5s after shell exit"
+        );
     }
 }

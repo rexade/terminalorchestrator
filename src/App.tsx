@@ -18,6 +18,7 @@ export default function App() {
     setActiveWorkspace,
     recentCwds,
     addRecentCwd,
+    setSessionStatus,
   } = useSessionStore()
   const {
     activeSessionId,
@@ -121,6 +122,30 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("sidebarMode", sidebarMode)
   }, [sidebarMode])
+
+  // Listen for session_exited events from the Rust backend
+  useEffect(() => {
+    let unlisten: (() => void) | undefined
+
+    const setup = async () => {
+      const { listen } = await import("@tauri-apps/api/event")
+      unlisten = await listen<string>("session_exited", (event) => {
+        const ptyId = event.payload
+        const entry = Object.entries(sessionPtyMap.current).find(([, v]) => v === ptyId)
+        if (!entry) return
+        const [storeId] = entry
+        const store = useSessionStore.getState()
+        const ws = store.workspaces.find((w) => w.sessions.some((s) => s.id === storeId))
+        if (!ws) return
+        store.setSessionStatus(ws.id, storeId, "exited")
+        delete sessionPtyMap.current[storeId]
+      })
+    }
+    setup()
+    return () => {
+      unlisten?.()
+    }
+  }, [])
 
   const handleNewSession = async (values: NewSessionValues) => {
     if (!activeWorkspaceId) return

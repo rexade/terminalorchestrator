@@ -46,9 +46,18 @@ pub async fn create_session(
         rows: args.rows,
     };
 
-    let pty = spawn_pty(config, move |data| {
-        let _ = app_clone.emit(&format!("pty_output_{}", id_clone), data);
-    })?;
+    let id_for_exit = session_id.clone();
+    let app_for_exit = app.clone();
+
+    let pty = spawn_pty(
+        config,
+        move |data| {
+            let _ = app_clone.emit(&format!("pty_output_{}", id_clone), data);
+        },
+        move || {
+            let _ = app_for_exit.emit("session_exited", id_for_exit.clone());
+        },
+    )?;
 
     let mut ptys = state.ptys.lock().map_err(|e| e.to_string())?;
     ptys.insert(session_id.clone(), PtyHandle { writer: pty.writer });
