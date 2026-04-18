@@ -4,7 +4,6 @@ interface StatusBarProps {
   activeSession: Session | null
   allSessions: Session[]
   isAtBottom: boolean
-  activeSessionId: string | null
   onJumpToBottom: () => void
 }
 

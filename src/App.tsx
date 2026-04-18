@@ -242,7 +242,6 @@ export default function App() {
         activeSession={sessions.find((s) => s.id === activeSessionId) ?? null}
         allSessions={sessions}
         isAtBottom={isAtBottom}
-        activeSessionId={activeSessionId}
         onJumpToBottom={() => scrollToBottomRef.current?.()}
       />
 
