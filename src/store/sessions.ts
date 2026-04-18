@@ -90,6 +90,10 @@ export const useSessionStore = create<SessionStore>((set) => ({
         w.id === workspaceId
           ? {
               ...w,
+              lastOpenedSessionId:
+                status === "exited" && w.lastOpenedSessionId === sessionId
+                  ? null
+                  : w.lastOpenedSessionId,
               sessions: w.sessions.map((sess) =>
                 sess.id === sessionId ? { ...sess, status } : sess
               ),

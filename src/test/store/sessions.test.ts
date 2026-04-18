@@ -97,6 +97,17 @@ describe("useSessionStore", () => {
     expect(useSessionStore.getState().workspaces[0].lastOpenedSessionId).toBe(claudeId)
   })
 
+  it("setSessionStatus to exited clears lastOpenedSessionId if it matches", () => {
+    const { addWorkspace, addSession, setLastOpenedSession, setSessionStatus } = useSessionStore.getState()
+    addWorkspace("WS")
+    const wsId = useSessionStore.getState().workspaces[0].id
+    addSession(wsId, { name: "Shell", role: "shell", type: "local", cwd: "~" })
+    const sessId = useSessionStore.getState().workspaces[0].sessions[0].id
+    setLastOpenedSession(wsId, sessId)
+    setSessionStatus(wsId, sessId, "exited")
+    expect(useSessionStore.getState().workspaces[0].lastOpenedSessionId).toBeNull()
+  })
+
   it("loadState restores workspaces, activeWorkspaceId, and recentCwds", () => {
     const { result } = renderHook(() => useSessionStore())
     const ws: import("../../types/session").Workspace = {

@@ -162,12 +162,13 @@ export default function App() {
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSession(sessionId)
-    if (activeWorkspaceId) setLastOpenedSession(activeWorkspaceId, sessionId)
+    const wsId = useSessionStore.getState().activeWorkspaceId
+    if (wsId) setLastOpenedSession(wsId, sessionId)
   }
 
   const handleSwitchWorkspace = (workspaceId: string) => {
     setActiveWorkspace(workspaceId)
-    const ws = workspaces.find((w) => w.id === workspaceId)
+    const ws = useSessionStore.getState().workspaces.find((w) => w.id === workspaceId)
     if (!ws) return
     const session = ws.sessions.find(
       (s) => s.id === ws.lastOpenedSessionId && s.status !== "exited"
