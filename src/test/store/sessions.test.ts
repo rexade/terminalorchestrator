@@ -63,4 +63,27 @@ describe("useSessionStore", () => {
     }
     expect(result.current.recentCwds).toHaveLength(10)
   })
+
+  it("auto-activates first workspace but not subsequent ones", () => {
+    const { result } = renderHook(() => useSessionStore())
+    act(() => result.current.addWorkspace("First"))
+    const firstId = result.current.workspaces[0].id
+    expect(result.current.activeWorkspaceId).toBe(firstId)
+    act(() => result.current.addWorkspace("Second"))
+    expect(result.current.activeWorkspaceId).toBe(firstId)
+  })
+
+  it("loadState restores workspaces, activeWorkspaceId, and recentCwds", () => {
+    const { result } = renderHook(() => useSessionStore())
+    const ws: import("../../types/session").Workspace = {
+      id: "ws1",
+      name: "Test",
+      sessions: [],
+      lastOpenedSessionId: null,
+    }
+    act(() => result.current.loadState([ws], "ws1", ["~/projects/foo"]))
+    expect(result.current.workspaces).toHaveLength(1)
+    expect(result.current.activeWorkspaceId).toBe("ws1")
+    expect(result.current.recentCwds[0]).toBe("~/projects/foo")
+  })
 })

@@ -40,6 +40,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     }
     set((s) => ({
       workspaces: [...s.workspaces, ws],
+      // Auto-activates only when no workspace is currently active (first workspace)
       activeWorkspaceId: s.activeWorkspaceId ?? ws.id,
     }))
   },
@@ -67,22 +68,22 @@ export const useSessionStore = create<SessionStore>((set) => ({
   },
 
   removeSession: (workspaceId, sessionId) =>
-    set((s) => ({
-      workspaces: s.workspaces.map((w) =>
+    set((state) => ({
+      workspaces: state.workspaces.map((w) =>
         w.id === workspaceId
-          ? { ...w, sessions: w.sessions.filter((s) => s.id !== sessionId) }
+          ? { ...w, sessions: w.sessions.filter((sess) => sess.id !== sessionId) }
           : w
       ),
     })),
 
   setSessionStatus: (workspaceId, sessionId, status) =>
-    set((s) => ({
-      workspaces: s.workspaces.map((w) =>
+    set((state) => ({
+      workspaces: state.workspaces.map((w) =>
         w.id === workspaceId
           ? {
               ...w,
-              sessions: w.sessions.map((s) =>
-                s.id === sessionId ? { ...s, status } : s
+              sessions: w.sessions.map((sess) =>
+                sess.id === sessionId ? { ...sess, status } : sess
               ),
             }
           : w
@@ -90,13 +91,13 @@ export const useSessionStore = create<SessionStore>((set) => ({
     })),
 
   setSessionCwd: (workspaceId, sessionId, cwd) =>
-    set((s) => ({
-      workspaces: s.workspaces.map((w) =>
+    set((state) => ({
+      workspaces: state.workspaces.map((w) =>
         w.id === workspaceId
           ? {
               ...w,
-              sessions: w.sessions.map((s) =>
-                s.id === sessionId ? { ...s, cwd } : s
+              sessions: w.sessions.map((sess) =>
+                sess.id === sessionId ? { ...sess, cwd } : sess
               ),
             }
           : w
