@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { Terminal } from "@xterm/xterm"
 import { FitAddon } from "@xterm/addon-fit"
 import { listen } from "@tauri-apps/api/event"
-import { writePty } from "../lib/tauri"
+import { writePty, resizePty } from "../lib/tauri"
 import { SessionRole } from "../types/session"
 import "@xterm/xterm/css/xterm.css"
 
@@ -39,6 +39,7 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
     term.loadAddon(fitAddon)
     term.open(containerRef.current)
     fitAddon.fit()
+    void resizePty(sessionId, term.cols, term.rows)
 
     termRef.current = term
 
@@ -86,6 +87,7 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
 
     const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit()
+      void resizePty(sessionId, term.cols, term.rows)
     })
     resizeObserver.observe(containerRef.current)
 

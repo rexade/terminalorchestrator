@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 pub struct PtyHandle {
     pub writer: Box<dyn Write + Send>,
+    pub master: Box<dyn portable_pty::MasterPty + Send>,
 }
 
 #[derive(Default)]

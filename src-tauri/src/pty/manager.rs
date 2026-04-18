@@ -1,9 +1,10 @@
-use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
+use portable_pty::{CommandBuilder, MasterPty, NativePtySystem, PtySize, PtySystem};
 use std::io::Read;
 use std::thread;
 
 pub struct SpawnedPty {
     pub writer: Box<dyn std::io::Write + Send>,
+    pub master: Box<dyn MasterPty + Send>,
 }
 
 pub struct PtySpawnConfig {
@@ -75,6 +76,7 @@ where
 
     Ok(SpawnedPty {
         writer: Box::new(writer),
+        master: pair.master,
     })
 }
 
@@ -109,6 +111,19 @@ mod tests {
         assert!(cfg.cols > 0);
         assert!(cfg.rows > 0);
         assert!(!cfg.shell.is_empty());
+    }
+
+    #[test]
+    fn spawned_pty_exposes_master_for_resize() {
+        let config = PtySpawnConfig::default();
+        let spawned = spawn_pty(config, |_| {}, || {}).expect("spawn failed");
+        let result = spawned.master.resize(portable_pty::PtySize {
+            rows: 30,
+            cols: 100,
+            pixel_width: 0,
+            pixel_height: 0,
+        });
+        assert!(result.is_ok(), "resize should succeed: {:?}", result);
     }
 
     #[test]

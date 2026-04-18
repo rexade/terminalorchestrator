@@ -66,7 +66,7 @@ pub async fn create_session(
     )?;
 
     let mut ptys = state.ptys.lock().map_err(|e| e.to_string())?;
-    ptys.insert(session_id.clone(), PtyHandle { writer: pty.writer });
+    ptys.insert(session_id.clone(), PtyHandle { writer: pty.writer, master: pty.master });
 
     Ok(session_id)
 }
@@ -87,8 +87,16 @@ pub async fn write_pty(
 }
 
 #[command]
-pub async fn resize_pty(_id: String, _cols: u16, _rows: u16) -> Result<(), String> {
-    // portable-pty resize via master.resize — deferred to v1.1
+pub async fn resize_pty(id: String, cols: u16, rows: u16, state: State<'_, AppState>) -> Result<(), String> {
+    let ptys = state.ptys.lock().map_err(|e| e.to_string())?;
+    if let Some(pty) = ptys.get(&id) {
+        pty.master.resize(portable_pty::PtySize {
+            rows,
+            cols,
+            pixel_width: 0,
+            pixel_height: 0,
+        }).map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 

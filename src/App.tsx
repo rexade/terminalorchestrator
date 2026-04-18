@@ -66,8 +66,8 @@ export default function App() {
                   role: session.role,
                   sessionType: session.type,
                   cwd: session.cwd,
-                  cols: 220,
-                  rows: 50,
+                  cols: 80,
+                  rows: 24,
                 })
                 sessionPtyMap.current[session.id] = ptyId
               } catch {
@@ -166,8 +166,8 @@ export default function App() {
       role: values.role,
       sessionType: values.sessionType,
       cwd: values.cwd,
-      cols: 220,
-      rows: 50,
+      cols: 80,
+      rows: 24,
     })
     const storeId = addSession(activeWorkspaceId, {
       name: values.name,
