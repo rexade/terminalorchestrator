@@ -33,6 +33,7 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
       lineHeight: 1.5,
       cursorBlink: true,
       scrollback: 5000,
+      copyOnSelect: true,
     })
 
     const fitAddon = new FitAddon()
@@ -69,6 +70,23 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
 
     const unlistenPromise = listen<number[]>(`pty_output_${sessionId}`, (event) => {
       term.write(new Uint8Array(event.payload))
+    })
+
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type === "keydown" && e.ctrlKey && !e.shiftKey && e.key === "C") {
+        const sel = term.getSelection()
+        if (sel) {
+          navigator.clipboard.writeText(sel)
+          term.clearSelection()
+          return false // don't send Ctrl+C to PTY
+        }
+      }
+      if (e.type === "keydown" && e.ctrlKey && e.shiftKey && e.key === "C") {
+        const sel = term.getSelection()
+        if (sel) navigator.clipboard.writeText(sel)
+        return false
+      }
+      return true
     })
 
     term.onData((data) => {
