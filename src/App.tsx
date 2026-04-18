@@ -109,6 +109,19 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Restore sidebar mode from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebarMode") as "normal" | "compact" | null
+    if (saved === "normal" || saved === "compact") {
+      setSidebarMode(saved)
+    }
+  }, [])
+
+  // Save sidebar mode to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("sidebarMode", sidebarMode)
+  }, [sidebarMode])
+
   const handleNewSession = async (values: NewSessionValues) => {
     if (!activeWorkspaceId) return
     setShowDialog(false)
