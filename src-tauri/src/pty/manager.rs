@@ -1,5 +1,6 @@
 use portable_pty::{CommandBuilder, MasterPty, NativePtySystem, PtySize, PtySystem};
 use std::io::Read;
+use std::sync::{Arc, Once};
 use std::thread;
 
 pub struct SpawnedPty {
@@ -40,11 +41,11 @@ pub fn resolve_cwd(cwd: &str) -> std::path::PathBuf {
 
 /// Spawns a PTY and returns the writer handle.
 /// Output is forwarded via the provided callback on a background thread.
-/// `on_exit` is called once after the reader loop terminates (shell exited or error).
+/// `on_exit` is called once when the child process exits or the reader loop terminates.
 pub fn spawn_pty<F, G>(config: PtySpawnConfig, on_output: F, on_exit: G) -> Result<SpawnedPty, String>
 where
     F: Fn(Vec<u8>) + Send + 'static,
-    G: Fn() + Send + 'static,
+    G: Fn() + Send + Sync + 'static,
 {
     let pty_system = NativePtySystem::default();
     let pair = pty_system
@@ -59,10 +60,17 @@ where
     let mut cmd = CommandBuilder::new(&config.shell);
     cmd.cwd(resolve_cwd(&config.cwd));
 
-    let _child = pair.slave.spawn_command(cmd).map_err(|e| e.to_string())?;
+    let child = pair.slave.spawn_command(cmd).map_err(|e| e.to_string())?;
     let mut reader = pair.master.try_clone_reader().map_err(|e| e.to_string())?;
     let writer = pair.master.take_writer().map_err(|e| e.to_string())?;
 
+    // Use Once so on_exit is called exactly once regardless of which thread fires first.
+    let once = Arc::new(Once::new());
+    let on_exit = Arc::new(on_exit);
+
+    // Reader thread: forwards output and fires on_exit when the pipe closes.
+    let once_reader = once.clone();
+    let on_exit_reader = on_exit.clone();
     thread::spawn(move || {
         let mut buf = [0u8; 4096];
         loop {
@@ -71,7 +79,18 @@ where
                 Ok(n) => on_output(buf[..n].to_vec()),
             }
         }
-        on_exit();
+        once_reader.call_once(|| on_exit_reader());
+    });
+
+    // Child-watcher thread: fires on_exit as soon as the child process exits.
+    // On Windows, ConPTY does not send EOF to the reader pipe until ClosePseudoConsole
+    // is called, so we need this watcher to reliably detect shell exit.
+    let once_watcher = once.clone();
+    let on_exit_watcher = on_exit.clone();
+    thread::spawn(move || {
+        let mut child = child;
+        let _ = child.wait();
+        once_watcher.call_once(|| on_exit_watcher());
     });
 
     Ok(SpawnedPty {
@@ -129,35 +148,25 @@ mod tests {
     #[test]
     fn on_exit_called_when_shell_exits() {
         use std::io::Write;
-        use std::sync::{
-            atomic::{AtomicBool, Ordering},
-            Arc,
-        };
+        use std::sync::mpsc;
 
-        let called = Arc::new(AtomicBool::new(false));
-        let called_clone = called.clone();
+        let (tx, rx) = mpsc::channel::<()>();
 
         let config = PtySpawnConfig::default();
         let mut spawned = spawn_pty(
             config,
             |_| {},
             move || {
-                called_clone.store(true, Ordering::SeqCst);
+                let _ = tx.send(());
             },
         )
         .expect("spawn_pty failed");
 
-        // Send exit command
+        // Send exit command and flush
         spawned.writer.write_all(b"exit\r\n").unwrap();
+        spawned.writer.flush().unwrap();
 
-        // Wait up to 5s
-        let start = std::time::Instant::now();
-        while !called.load(Ordering::SeqCst) && start.elapsed().as_secs() < 5 {
-            std::thread::sleep(std::time::Duration::from_millis(50));
-        }
-        assert!(
-            called.load(Ordering::SeqCst),
-            "on_exit was not called within 5s after shell exit"
-        );
+        rx.recv_timeout(std::time::Duration::from_secs(10))
+            .expect("on_exit was not called within 10s after shell exit");
     }
 }
