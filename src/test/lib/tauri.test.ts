@@ -17,7 +17,14 @@ describe("tauri command wrappers", () => {
       cols: 220,
       rows: 50,
     })
-    expect(mockInvoke).toHaveBeenCalledWith("create_session", expect.objectContaining({ name: "Claude" }))
+    expect(mockInvoke).toHaveBeenCalledWith("create_session", {
+      name: "Claude",
+      session_type: "local", // verifies camelCase→snake_case mapping
+      role: "claude",
+      cwd: "~",
+      cols: 220,
+      rows: 50,
+    })
     expect(id).toBe("session-123")
   })
 
