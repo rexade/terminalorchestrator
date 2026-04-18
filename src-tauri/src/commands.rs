@@ -2,6 +2,7 @@ use crate::pty::manager::{spawn_pty, PtySpawnConfig};
 use crate::session::{SessionRole, SessionType};
 use crate::state::{AppState, PtyHandle};
 use std::io::Write;
+use std::sync::Arc;
 use tauri::{command, AppHandle, Emitter, State};
 use uuid::Uuid;
 
@@ -46,6 +47,7 @@ pub async fn create_session(
         rows: args.rows,
     };
 
+    let ptys_for_exit = Arc::clone(&state.ptys);
     let id_for_exit = session_id.clone();
     let app_for_exit = app.clone();
 
@@ -55,6 +57,10 @@ pub async fn create_session(
             let _ = app_clone.emit(&format!("pty_output_{}", id_clone), data);
         },
         move || {
+            // Remove dead handle first, then notify frontend
+            if let Ok(mut ptys) = ptys_for_exit.lock() {
+                ptys.remove(&id_for_exit);
+            }
             let _ = app_for_exit.emit("session_exited", id_for_exit.clone());
         },
     )?;

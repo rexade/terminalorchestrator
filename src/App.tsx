@@ -18,7 +18,6 @@ export default function App() {
     setActiveWorkspace,
     recentCwds,
     addRecentCwd,
-    setSessionStatus,
   } = useSessionStore()
   const {
     activeSessionId,
@@ -139,6 +138,17 @@ export default function App() {
         if (!ws) return
         store.setSessionStatus(ws.id, storeId, "exited")
         delete sessionPtyMap.current[storeId]
+
+        // Auto-select next session if the active one just exited
+        const { activeSessionId, setActiveSession } = useUIStore.getState()
+        if (activeSessionId === storeId) {
+          const next = useSessionStore
+            .getState()
+            .workspaces
+            .flatMap((w) => w.sessions)
+            .find((s) => s.status !== "exited" && s.id !== storeId)
+          setActiveSession(next?.id ?? null)
+        }
       })
     }
     setup()

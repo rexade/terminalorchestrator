@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::io::Write;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 pub struct PtyHandle {
     pub writer: Box<dyn Write + Send>,
@@ -8,5 +8,5 @@ pub struct PtyHandle {
 
 #[derive(Default)]
 pub struct AppState {
-    pub ptys: Mutex<HashMap<String, PtyHandle>>,
+    pub ptys: Arc<Mutex<HashMap<String, PtyHandle>>>,
 }
