@@ -5,16 +5,24 @@ interface StatusBarProps {
   allSessions: Session[]
   isAtBottom: boolean
   onJumpToBottom: () => void
+  sessionError?: string | null
+}
+
+const SHELL_LABEL: Record<string, string> = {
+  cmd: "cmd",
+  powershell: "powershell",
+  wsl: "wsl · bash",
+  ssh: "ssh",
 }
 
 export function StatusBar({
   activeSession,
-  allSessions,
+  allSessions: _allSessions,
   isAtBottom,
   onJumpToBottom,
+  sessionError,
 }: StatusBarProps) {
-  const shellLabel = activeSession?.type === "wsl" ? "wsl · bash" : "local · bash"
-  const errorSessions = allSessions.filter((s) => s.status === "exited").slice(0, 2)
+  const shellLabel = activeSession ? (SHELL_LABEL[activeSession.type] ?? activeSession.type) : "—"
 
   return (
     <div className="h-5 bg-[#161b22] border-t border-[#21262d] flex items-center justify-between px-3 text-[10px] text-zinc-600 shrink-0">
@@ -25,16 +33,16 @@ export function StatusBar({
         )}
       </div>
       <div className="flex gap-2 items-center">
-        {errorSessions.map((s) => (
-          <span key={s.id} className="text-red-500">
-            ⚠ {s.name}
+        {sessionError && (
+          <span className="text-red-400 max-w-xs truncate" title={sessionError}>
+            ⚠ {sessionError}
           </span>
-        ))}
+        )}
         {!isAtBottom && (
           <button
             title="Jump to latest output"
             onClick={onJumpToBottom}
-            className="text-blue-400 hover:text-blue-300 leading-none"
+            className="w-4 h-4 flex items-center justify-center rounded bg-[#21262d] text-zinc-400 hover:text-zinc-200 hover:bg-[#30363d] leading-none text-[10px]"
           >
             ↓
           </button>

@@ -6,9 +6,10 @@ interface SessionListProps {
   sessions: Session[]
   activeSessionId: string | null
   onSelect: (id: string) => void
+  onClose: (id: string) => void
 }
 
-export function SessionList({ sessions, activeSessionId, onSelect }: SessionListProps) {
+export function SessionList({ sessions, activeSessionId, onSelect, onClose }: SessionListProps) {
   const [exitedExpanded, setExitedExpanded] = useState(false)
   const active = sessions.filter((s) => s.status !== "exited")
   const exited = sessions.filter((s) => s.status === "exited")
@@ -21,6 +22,7 @@ export function SessionList({ sessions, activeSessionId, onSelect }: SessionList
           session={s}
           isActive={s.id === activeSessionId}
           onClick={() => onSelect(s.id)}
+          onClose={() => onClose(s.id)}
         />
       ))}
 

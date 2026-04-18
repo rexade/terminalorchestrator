@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   clearScreen: false,
-  server: { strictPort: true },
+  server: { port: 1420, strictPort: true },
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   build: {
     target: "chrome105",

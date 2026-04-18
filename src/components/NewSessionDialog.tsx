@@ -26,7 +26,7 @@ interface NewSessionDialogProps {
 
 export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSessionDialogProps) {
   const [role, setRole] = useState<SessionRole>("shell")
-  const [sessionType, setSessionType] = useState<SessionType>("local")
+  const [sessionType, setSessionType] = useState<SessionType>("cmd")
   const [cwd, setCwd] = useState(recentCwds[0] ?? "~")
   const [wslAvailable, setWslAvailable] = useState(false)
 
@@ -76,7 +76,7 @@ export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSession
         <div>
           <label className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5 block">Type</label>
           <div className="flex gap-2">
-            {(["local", ...(wslAvailable ? ["wsl"] : [])] as SessionType[]).map((t) => (
+            {(["cmd", "powershell", ...(wslAvailable ? ["wsl"] : [])] as SessionType[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setSessionType(t)}

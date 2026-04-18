@@ -1,4 +1,4 @@
-export type SessionType = "local" | "wsl" | "ssh" // "ssh" reserved for v1.1
+export type SessionType = "cmd" | "powershell" | "wsl" | "ssh" // "ssh" reserved for v1.1
 export type SessionRole = "claude" | "shell" | "server" | "logs" | "git" | "ssh"
 export type SessionStatus = "active" | "idle" | "exited"
 export type SidebarMode = "normal" | "compact"

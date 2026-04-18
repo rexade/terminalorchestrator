@@ -4,9 +4,9 @@ import { SessionList } from "../../components/SessionList"
 import { Session } from "../../types/session"
 
 const sessions: Session[] = [
-  { id: "s1", name: "Claude", type: "local", role: "claude", status: "active", cwd: "~/a", createdAt: 0 },
-  { id: "s2", name: "App", type: "local", role: "server", status: "idle", cwd: "~/b", createdAt: 1 },
-  { id: "s3", name: "Old", type: "local", role: "shell", status: "exited", cwd: "~/c", createdAt: 2 },
+  { id: "s1", name: "Claude", type: "cmd", role: "claude", status: "active", cwd: "~/a", createdAt: 0 },
+  { id: "s2", name: "App", type: "cmd", role: "server", status: "idle", cwd: "~/b", createdAt: 1 },
+  { id: "s3", name: "Old", type: "cmd", role: "shell", status: "exited", cwd: "~/c", createdAt: 2 },
 ]
 
 describe("SessionList", () => {

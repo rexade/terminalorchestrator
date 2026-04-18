@@ -6,7 +6,7 @@ import { Session } from "../../types/session"
 const makeSession = (overrides?: Partial<Session>): Session => ({
   id: "s1",
   name: "Claude",
-  type: "local",
+  type: "cmd",
   role: "claude",
   status: "active",
   cwd: "~/projects",
@@ -24,24 +24,21 @@ describe("StatusBar", () => {
         onJumpToBottom={() => {}}
       />
     )
-    expect(screen.getByText(/local/)).toBeInTheDocument()
+    expect(screen.getByText("cmd")).toBeInTheDocument()
     expect(screen.getByText(/~/)).toBeInTheDocument()
   })
 
-  it("shows error badge for exited sessions", () => {
-    const sessions = [
-      makeSession(),
-      makeSession({ id: "s2", name: "App", status: "exited" }),
-    ]
+  it("shows sessionError when provided", () => {
     render(
       <StatusBar
         activeSession={makeSession()}
-        allSessions={sessions}
+        allSessions={[]}
         isAtBottom={true}
         onJumpToBottom={() => {}}
+        sessionError="spawn failed"
       />
     )
-    expect(screen.getByText(/⚠ App/)).toBeInTheDocument()
+    expect(screen.getByText(/spawn failed/)).toBeInTheDocument()
   })
 
   it("shows jump button when not at bottom", () => {

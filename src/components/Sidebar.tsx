@@ -6,11 +6,12 @@ interface SidebarProps {
   activeSessionId: string | null
   mode: SidebarMode
   onSelect: (id: string) => void
+  onClose: (id: string) => void
   onToggleMode: () => void
   onNewSession: () => void
 }
 
-export function Sidebar({ sessions, activeSessionId, mode, onSelect, onToggleMode, onNewSession }: SidebarProps) {
+export function Sidebar({ sessions, activeSessionId, mode, onSelect, onClose, onToggleMode, onNewSession }: SidebarProps) {
   if (mode === "compact") {
     return (
       <div className="flex flex-col items-center w-11 bg-[#0d1117] border-r border-[#21262d] py-2 gap-1">
@@ -56,7 +57,7 @@ export function Sidebar({ sessions, activeSessionId, mode, onSelect, onToggleMod
         <div className="px-2.5 mb-1.5 text-[9px] tracking-[0.15em] text-zinc-600 uppercase">
           Sessions
         </div>
-        <SessionList sessions={sessions} activeSessionId={activeSessionId} onSelect={onSelect} />
+        <SessionList sessions={sessions} activeSessionId={activeSessionId} onSelect={onSelect} onClose={onClose} />
       </div>
       <div className="flex gap-1.5 p-2 border-t border-[#21262d]">
         <button

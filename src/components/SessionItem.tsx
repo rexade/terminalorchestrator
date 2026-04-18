@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Session } from "../types/session"
 import { ROLE_ICONS } from "../types/session"
 
@@ -11,12 +12,17 @@ interface SessionItemProps {
   session: Session
   isActive: boolean
   onClick: () => void
+  onClose?: () => void
 }
 
-export function SessionItem({ session, isActive, onClick }: SessionItemProps) {
+export function SessionItem({ session, isActive, onClick, onClose }: SessionItemProps) {
+  const [hovered, setHovered] = useState(false)
+
   return (
     <div
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={[
         "px-2.5 py-1.5 cursor-pointer select-none",
         isActive
@@ -37,7 +43,17 @@ export function SessionItem({ session, isActive, onClick }: SessionItemProps) {
             {session.name}
           </span>
         </div>
-        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ml-1 ${STATUS_COLORS[session.status]}`} />
+        {hovered && onClose && session.status !== "exited" ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose() }}
+            className="text-[10px] text-zinc-600 hover:text-zinc-300 leading-none px-0.5 shrink-0"
+            title="Close session"
+          >
+            ×
+          </button>
+        ) : (
+          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ml-1 ${STATUS_COLORS[session.status]}`} />
+        )}
       </div>
       <div className="text-[10px] text-zinc-600 mt-0.5 pl-4 truncate">{session.cwd}</div>
     </div>

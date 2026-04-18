@@ -6,32 +6,29 @@ use std::sync::Arc;
 use tauri::{command, AppHandle, Emitter, State};
 use uuid::Uuid;
 
-#[derive(serde::Deserialize)]
-pub struct CreateSessionArgs {
-    pub name: String,
-    pub role: SessionRole,
-    pub session_type: SessionType,
-    pub cwd: String,
-    pub cols: u16,
-    pub rows: u16,
-}
-
 #[command]
 pub async fn create_session(
-    args: CreateSessionArgs,
+    name: String,
+    role: SessionRole,
+    session_type: SessionType,
+    cwd: String,
+    cols: u16,
+    rows: u16,
     state: State<'_, AppState>,
     app: AppHandle,
 ) -> Result<String, String> {
+    let _ = (name, role);
     let session_id = Uuid::new_v4().to_string();
     let id_clone = session_id.clone();
     let app_clone = app.clone();
 
-    let shell = match args.session_type {
+    let shell = match session_type {
         SessionType::Wsl => "wsl.exe".to_string(),
+        SessionType::PowerShell => "powershell.exe".to_string(),
         _ => {
             #[cfg(target_os = "windows")]
             {
-                "powershell.exe".to_string()
+                "cmd.exe".to_string()
             }
             #[cfg(not(target_os = "windows"))]
             {
@@ -41,10 +38,10 @@ pub async fn create_session(
     };
 
     let config = PtySpawnConfig {
-        cwd: args.cwd,
+        cwd,
         shell,
-        cols: args.cols,
-        rows: args.rows,
+        cols,
+        rows,
     };
 
     let ptys_for_exit = Arc::clone(&state.ptys);

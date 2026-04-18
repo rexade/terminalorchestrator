@@ -22,7 +22,7 @@ describe("useSessionStore", () => {
     const { result } = renderHook(() => useSessionStore())
     act(() => result.current.addWorkspace("CloudLab"))
     const wsId = result.current.workspaces[0].id
-    act(() => result.current.addSession(wsId, { name: "Claude", role: "claude", type: "local", cwd: "~" }))
+    act(() => result.current.addSession(wsId, { name: "Claude", role: "claude", type: "cmd", cwd: "~" }))
     expect(result.current.workspaces[0].sessions).toHaveLength(1)
     expect(result.current.workspaces[0].sessions[0].name).toBe("Claude")
   })
@@ -31,7 +31,7 @@ describe("useSessionStore", () => {
     const { result } = renderHook(() => useSessionStore())
     act(() => result.current.addWorkspace("W"))
     const wsId = result.current.workspaces[0].id
-    act(() => result.current.addSession(wsId, { name: "Shell", role: "shell", type: "local", cwd: "~" }))
+    act(() => result.current.addSession(wsId, { name: "Shell", role: "shell", type: "cmd", cwd: "~" }))
     const sessionId = result.current.workspaces[0].sessions[0].id
     act(() => result.current.removeSession(wsId, sessionId))
     expect(result.current.workspaces[0].sessions).toHaveLength(0)
@@ -41,7 +41,7 @@ describe("useSessionStore", () => {
     const { result } = renderHook(() => useSessionStore())
     act(() => result.current.addWorkspace("W"))
     const wsId = result.current.workspaces[0].id
-    act(() => result.current.addSession(wsId, { name: "App", role: "server", type: "local", cwd: "~" }))
+    act(() => result.current.addSession(wsId, { name: "App", role: "server", type: "cmd", cwd: "~" }))
     const sessionId = result.current.workspaces[0].sessions[0].id
     act(() => result.current.setSessionStatus(wsId, sessionId, "exited"))
     expect(result.current.workspaces[0].sessions[0].status).toBe("exited")
@@ -89,8 +89,8 @@ describe("useSessionStore", () => {
     const { addWorkspace, addSession, setLastOpenedSession } = useSessionStore.getState()
     addWorkspace("WS")
     const wsId = useSessionStore.getState().workspaces[0].id
-    addSession(wsId, { name: "Shell", role: "shell", type: "local", cwd: "~" })
-    addSession(wsId, { name: "Claude", role: "claude", type: "local", cwd: "~" })
+    addSession(wsId, { name: "Shell", role: "shell", type: "cmd", cwd: "~" })
+    addSession(wsId, { name: "Claude", role: "claude", type: "cmd", cwd: "~" })
     const sessions = useSessionStore.getState().workspaces[0].sessions
     const claudeId = sessions[1].id
     setLastOpenedSession(wsId, claudeId)
@@ -101,7 +101,7 @@ describe("useSessionStore", () => {
     const { addWorkspace, addSession, setLastOpenedSession, setSessionStatus } = useSessionStore.getState()
     addWorkspace("WS")
     const wsId = useSessionStore.getState().workspaces[0].id
-    addSession(wsId, { name: "Shell", role: "shell", type: "local", cwd: "~" })
+    addSession(wsId, { name: "Shell", role: "shell", type: "cmd", cwd: "~" })
     const sessId = useSessionStore.getState().workspaces[0].sessions[0].id
     setLastOpenedSession(wsId, sessId)
     setSessionStatus(wsId, sessId, "exited")

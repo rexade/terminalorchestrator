@@ -12,14 +12,14 @@ describe("tauri command wrappers", () => {
     const id = await createSession({
       name: "Claude",
       role: "claude",
-      sessionType: "local",
+      sessionType: "cmd",
       cwd: "~",
       cols: 220,
       rows: 50,
     })
     expect(mockInvoke).toHaveBeenCalledWith("create_session", {
       name: "Claude",
-      session_type: "local", // verifies camelCase→snake_case mapping
+      sessionType: "cmd",
       role: "claude",
       cwd: "~",
       cols: 220,

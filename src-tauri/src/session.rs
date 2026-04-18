@@ -1,9 +1,11 @@
+#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum SessionType {
-    Local,
+    Cmd,
+    PowerShell,
     Wsl,
     Ssh,
 }
@@ -62,14 +64,14 @@ mod tests {
         let s = Session {
             id: "abc".into(),
             name: "Claude".into(),
-            session_type: SessionType::Local,
+            session_type: SessionType::Cmd,
             role: SessionRole::Claude,
             status: SessionStatus::Active,
             cwd: "~".into(),
             created_at: 0,
         };
         let json = serde_json::to_string(&s).unwrap();
-        assert!(json.contains("\"type\":\"local\""));
+        assert!(json.contains("\"type\":\"cmd\""));
         assert!(json.contains("\"role\":\"claude\""));
         assert!(json.contains("\"status\":\"active\""));
     }

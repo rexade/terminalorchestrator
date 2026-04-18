@@ -6,7 +6,7 @@ import { Session } from "../../types/session"
 const makeSession = (overrides?: Partial<Session>): Session => ({
   id: "s1",
   name: "Claude",
-  type: "local",
+  type: "cmd",
   role: "claude",
   status: "active",
   cwd: "~/projects",

@@ -32,6 +32,7 @@ export default function App() {
   } = useUIStore()
 
   const [showDialog, setShowDialog] = useState(false)
+  const [sessionError, setSessionError] = useState<string | null>(null)
   const sessionPtyMap = useRef<Record<string, string>>({})
   const scrollToBottomRef = useRef<(() => void) | null>(null)
   const hasLoaded = useRef(false)
@@ -183,26 +184,39 @@ export default function App() {
     else setActiveSession(null)
   }
 
+  const handleCloseSession = async (sessionId: string) => {
+    const ptyId = sessionPtyMap.current[sessionId]
+    if (ptyId) {
+      const { killSession } = await import("./lib/tauri")
+      await killSession(ptyId).catch(() => {})
+    }
+  }
+
   const handleNewSession = async (values: NewSessionValues) => {
     if (!activeWorkspaceId) return
     setShowDialog(false)
     addRecentCwd(values.cwd)
-    const ptyId = await createSession({
-      name: values.name,
-      role: values.role,
-      sessionType: values.sessionType,
-      cwd: values.cwd,
-      cols: 80,
-      rows: 24,
-    })
-    const storeId = addSession(activeWorkspaceId, {
-      name: values.name,
-      role: values.role,
-      type: values.sessionType,
-      cwd: values.cwd,
-    })
-    sessionPtyMap.current[storeId] = ptyId
-    setActiveSession(storeId)
+    try {
+      const ptyId = await createSession({
+        name: values.name,
+        role: values.role,
+        sessionType: values.sessionType,
+        cwd: values.cwd,
+        cols: 80,
+        rows: 24,
+      })
+      const storeId = addSession(activeWorkspaceId, {
+        name: values.name,
+        role: values.role,
+        type: values.sessionType,
+        cwd: values.cwd,
+      })
+      sessionPtyMap.current[storeId] = ptyId
+      setActiveSession(storeId)
+      setSessionError(null)
+    } catch (err) {
+      setSessionError(String(err))
+    }
   }
 
   return (
@@ -223,6 +237,7 @@ export default function App() {
           activeSessionId={activeSessionId}
           mode={sidebarMode}
           onSelect={handleSelectSession}
+          onClose={handleCloseSession}
           onToggleMode={() =>
             setSidebarMode(sidebarMode === "normal" ? "compact" : "normal")
           }
@@ -250,6 +265,7 @@ export default function App() {
         allSessions={sessions}
         isAtBottom={isAtBottom}
         onJumpToBottom={() => scrollToBottomRef.current?.()}
+        sessionError={sessionError}
       />
 
       {showDialog && (

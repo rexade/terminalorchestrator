@@ -14,7 +14,7 @@ export const createSession = (args: CreateSessionArgs): Promise<string> =>
   invoke("create_session", {
     name: args.name,
     role: args.role,
-    session_type: args.sessionType,
+    sessionType: args.sessionType,
     cwd: args.cwd,
     cols: args.cols,
     rows: args.rows,
