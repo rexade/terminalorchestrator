@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { SessionRole, SessionType } from "../types/session"
 import { checkWslAvailable } from "../lib/tauri"
+import { open } from "@tauri-apps/plugin-dialog"
 
 export interface NewSessionValues {
   name: string
@@ -34,6 +35,13 @@ export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSession
   }, [])
 
   const label = ROLES.find((r) => r.role === role)?.label ?? "Shell"
+
+  const handleBrowse = async () => {
+    const picked = await open({ directory: true, multiple: false })
+    if (picked && typeof picked === "string") {
+      setCwd(picked)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -92,7 +100,17 @@ export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSession
               <option key={d} value={d}>{d}</option>
             ))}
             {!recentCwds.includes("~") && <option value="~">~ (home)</option>}
+            {cwd && !recentCwds.includes(cwd) && cwd !== "~" && (
+              <option key={cwd} value={cwd}>{cwd}</option>
+            )}
           </select>
+          <button
+            type="button"
+            onClick={handleBrowse}
+            className="mt-1.5 w-full bg-[#21262d] text-zinc-500 text-xs py-1 rounded hover:text-zinc-300"
+          >
+            Browse
+          </button>
         </div>
 
         <div className="flex gap-2 justify-end">
