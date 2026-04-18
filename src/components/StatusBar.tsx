@@ -15,7 +15,7 @@ export function StatusBar({
   onJumpToBottom,
 }: StatusBarProps) {
   const shellLabel = activeSession?.type === "wsl" ? "wsl · bash" : "local · bash"
-  const errorSessions = allSessions.filter((s) => s.status === "exited")
+  const errorSessions = allSessions.filter((s) => s.status === "exited").slice(0, 2)
 
   return (
     <div className="h-5 bg-[#161b22] border-t border-[#21262d] flex items-center justify-between px-3 text-[10px] text-zinc-600 shrink-0">

@@ -28,7 +28,7 @@ export function SessionList({ sessions, activeSessionId, onSelect }: SessionList
         <>
           <button
             onClick={() => setExitedExpanded((v) => !v)}
-            className="px-2.5 py-1.5 text-left text-[10px] text-zinc-600 tracking-widest uppercase hover:text-zinc-400 mt-1 border-t border-[#21262d]"
+            className="px-2.5 py-1.5 text-left text-[10px] text-zinc-600 tracking-[0.15em] uppercase hover:text-zinc-400 mt-1 border-t border-[#21262d]"
           >
             {exitedExpanded ? "▾" : "▸"} EXITED ({exited.length})
           </button>

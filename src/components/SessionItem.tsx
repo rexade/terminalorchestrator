@@ -27,7 +27,13 @@ export function SessionItem({ session, isActive, onClick }: SessionItemProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-xs shrink-0 text-zinc-400">{ROLE_ICONS[session.role]}</span>
-          <span className={`text-xs truncate ${isActive ? "text-zinc-100" : "text-zinc-400"}`}>
+          <span className={`text-xs truncate ${
+            session.role === "claude"
+              ? "text-blue-400"
+              : isActive
+              ? "text-zinc-100"
+              : "text-zinc-400"
+          }`}>
             {session.name}
           </span>
         </div>

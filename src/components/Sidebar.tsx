@@ -53,7 +53,7 @@ export function Sidebar({ sessions, activeSessionId, mode, onSelect, onToggleMod
   return (
     <div className="flex flex-col w-40 bg-[#0d1117] border-r border-[#21262d]">
       <div className="flex-1 overflow-y-auto py-2">
-        <div className="px-2.5 mb-1.5 text-[9px] tracking-widest text-zinc-600 uppercase">
+        <div className="px-2.5 mb-1.5 text-[9px] tracking-[0.15em] text-zinc-600 uppercase">
           Sessions
         </div>
         <SessionList sessions={sessions} activeSessionId={activeSessionId} onSelect={onSelect} />
