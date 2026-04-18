@@ -6,7 +6,8 @@ import { StatusBar } from "./components/StatusBar"
 import { NewSessionDialog, NewSessionValues } from "./components/NewSessionDialog"
 import { useSessionStore } from "./store/sessions"
 import { useUIStore } from "./store/ui"
-import { createSession } from "./lib/tauri"
+import { createSession, loadPersistedState, savePersistedState } from "./lib/tauri"
+import { AppState } from "./types/session"
 
 export default function App() {
   const {
@@ -34,11 +35,52 @@ export default function App() {
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
   const sessions = activeWorkspace?.sessions ?? []
 
-  // Seed first workspace on first run
+  // Load persisted state on mount
   useEffect(() => {
-    if (workspaces.length === 0) {
-      addWorkspace("Workspace 1")
+    loadPersistedState().then((json) => {
+      try {
+        const state: AppState = JSON.parse(json)
+        if (state.workspaces?.length) {
+          useSessionStore.getState().loadState(
+            state.workspaces,
+            state.activeWorkspaceId ?? null,
+            state.recentCwds ?? []
+          )
+          if (state.activeWorkspaceId) {
+            setActiveWorkspace(state.activeWorkspaceId)
+          }
+          // Set first non-exited session as active
+          const firstActive = state.workspaces
+            .find((w) => w.id === state.activeWorkspaceId)
+            ?.sessions.find((s) => s.status !== "exited")
+          if (firstActive) setActiveSession(firstActive.id)
+        }
+      } catch {
+        // Corrupted state — start fresh
+      }
+    })
+  }, [])
+
+  // Auto-save whenever workspaces or activeWorkspaceId changes
+  const sessionState = useSessionStore()
+  useEffect(() => {
+    const toSave: AppState = {
+      workspaces: sessionState.workspaces,
+      activeWorkspaceId: sessionState.activeWorkspaceId,
+      recentCwds: sessionState.recentCwds,
     }
+    savePersistedState(JSON.stringify(toSave))
+  }, [sessionState.workspaces, sessionState.activeWorkspaceId, sessionState.recentCwds])
+
+  // Seed first workspace on first run (only if nothing was loaded from persistence)
+  useEffect(() => {
+    // Small delay to let the load effect run first
+    const timer = setTimeout(() => {
+      if (useSessionStore.getState().workspaces.length === 0) {
+        addWorkspace("Workspace 1")
+      }
+    }, 100)
+    return () => clearTimeout(timer)
   }, [])
 
   const handleNewSession = async (values: NewSessionValues) => {
