@@ -3,16 +3,18 @@ import { Terminal } from "@xterm/xterm"
 import { FitAddon } from "@xterm/addon-fit"
 import { listen } from "@tauri-apps/api/event"
 import { writePty } from "../lib/tauri"
+import { SessionRole } from "../types/session"
 import "@xterm/xterm/css/xterm.css"
 
 interface TerminalPaneProps {
   sessionId: string
   isActive: boolean
+  role: SessionRole
   onScrollChange?: (atBottom: boolean) => void
   scrollToBottomRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export function TerminalPane({ sessionId, isActive, onScrollChange, scrollToBottomRef }: TerminalPaneProps) {
+export function TerminalPane({ sessionId, isActive, role, onScrollChange, scrollToBottomRef }: TerminalPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
 
@@ -40,6 +42,30 @@ export function TerminalPane({ sessionId, isActive, onScrollChange, scrollToBott
 
     termRef.current = term
 
+    let promptObserver: MutationObserver | null = null
+    if (role === "claude") {
+      promptObserver = new MutationObserver(() => {
+        if (!containerRef.current) return
+        const rows = containerRef.current.querySelectorAll(".xterm-rows > div")
+        rows.forEach((row) => {
+          const text = row.textContent ?? ""
+          if (
+            text.trimStart().startsWith("❯ ") &&
+            !row.hasAttribute("data-divider")
+          ) {
+            row.setAttribute("data-divider", "1")
+            ;(row as HTMLElement).style.borderTop = "1px solid #21262d"
+            ;(row as HTMLElement).style.marginTop = "4px"
+            ;(row as HTMLElement).style.paddingTop = "2px"
+          }
+        })
+      })
+      promptObserver.observe(containerRef.current, {
+        childList: true,
+        subtree: true,
+      })
+    }
+
     if (scrollToBottomRef) {
       scrollToBottomRef.current = () => term.scrollToBottom()
     }
@@ -66,6 +92,7 @@ export function TerminalPane({ sessionId, isActive, onScrollChange, scrollToBott
     return () => {
       unlistenPromise.then((fn) => fn())
       resizeObserver.disconnect()
+      promptObserver?.disconnect()
       if (scrollToBottomRef) scrollToBottomRef.current = null
       term.dispose()
     }

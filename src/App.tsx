@@ -174,6 +174,7 @@ export default function App() {
                 key={s.id}
                 sessionId={sessionPtyMap.current[s.id] ?? s.id}
                 isActive={s.id === activeSessionId}
+                role={s.role}
                 onScrollChange={s.id === activeSessionId ? setIsAtBottom : undefined}
                 scrollToBottomRef={s.id === activeSessionId ? scrollToBottomRef : undefined}
               />
