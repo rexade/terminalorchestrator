@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import { Toolbar } from "./components/Toolbar"
 import { Sidebar } from "./components/Sidebar"
-import { TerminalPane } from "./components/TerminalPane"
+import { LayoutGrid } from "./components/LayoutGrid"
 import { StatusBar } from "./components/StatusBar"
 import { NewSessionDialog, NewSessionValues } from "./components/NewSessionDialog"
 import { useSessionStore } from "./store/sessions"
 import { useUIStore } from "./store/ui"
 import { createSession, loadPersistedState, savePersistedState } from "./lib/tauri"
-import { AppState } from "./types/session"
+import { AppState, LAYOUT_SLOT_COUNT } from "./types/session"
 
 export default function App() {
   const {
@@ -26,16 +26,25 @@ export default function App() {
     activeSessionId,
     sidebarMode,
     isAtBottom,
+    layout,
+    paneMap,
+    activePaneIndex,
     setActiveSession,
     setSidebarMode,
     setIsAtBottom,
+    setLayout,
+    setPaneSession,
+    setActivePaneIndex,
   } = useUIStore()
 
   const [showDialog, setShowDialog] = useState(false)
   const [sessionError, setSessionError] = useState<string | null>(null)
+  const [ptyMapStamp, setPtyMapStamp] = useState(0)
   const sessionPtyMap = useRef<Record<string, string>>({})
   const scrollToBottomRef = useRef<(() => void) | null>(null)
   const hasLoaded = useRef(false)
+  // Track which pane an empty-slot click targets for session assignment
+  const pendingPaneIndex = useRef<number | null>(null)
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
   const sessions = activeWorkspace?.sessions ?? []
@@ -82,20 +91,15 @@ export default function App() {
                 })
                 sessionPtyMap.current[session.id] = ptyId
               } catch {
-                // If spawn fails, mark session as exited
-                useSessionStore.getState().setSessionStatus(
-                  ws.id,
-                  session.id,
-                  "exited"
-                )
+                useSessionStore.getState().setSessionStatus(ws.id, session.id, "exited")
               }
             }
           }
+          setPtyMapStamp((n) => n + 1)
         } else {
           hasLoaded.current = true
         }
       } catch {
-        // Corrupted state — start fresh
         hasLoaded.current = true
       }
     })()
@@ -114,9 +118,8 @@ export default function App() {
     savePersistedState(JSON.stringify(toSave))
   }, [sessionState.workspaces, sessionState.activeWorkspaceId, sessionState.recentCwds, sidebarMode])
 
-  // Seed first workspace on first run (only if nothing was loaded from persistence)
+  // Seed first workspace on first run
   useEffect(() => {
-    // Small delay to let the load effect run first
     const timer = setTimeout(() => {
       if (useSessionStore.getState().workspaces.length === 0) {
         addWorkspace("Workspace 1")
@@ -125,10 +128,9 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Listen for session_exited events from the Rust backend
+  // Listen for session_exited events from Rust backend
   useEffect(() => {
     let unlisten: (() => void) | undefined
-
     const setup = async () => {
       const { listen } = await import("@tauri-apps/api/event")
       unlisten = await listen<string>("session_exited", (event) => {
@@ -142,26 +144,54 @@ export default function App() {
         store.setSessionStatus(ws.id, storeId, "exited")
         delete sessionPtyMap.current[storeId]
 
-        // Auto-select next session if the active one just exited
-        const { activeSessionId, setActiveSession } = useUIStore.getState()
-        if (activeSessionId === storeId) {
+        // Clear from any pane slot
+        const ui = useUIStore.getState()
+        ui.paneMap.forEach((sid, i) => {
+          if (sid === storeId) ui.setPaneSession(i, null)
+        })
+
+        // Auto-select next session in active pane if this was it
+        if (ui.activeSessionId === storeId) {
           const next = useSessionStore
             .getState()
-            .workspaces
-            .find((w) => w.id === ws.id)
-            ?.sessions
-            .find((s) => s.status !== "exited" && s.id !== storeId)
-          setActiveSession(next?.id ?? null)
+            .workspaces.find((w) => w.id === ws.id)
+            ?.sessions.find((s) => s.status !== "exited" && s.id !== storeId)
+          useUIStore.getState().setActiveSession(next?.id ?? null)
         }
       })
     }
     setup()
-    return () => {
-      unlisten?.()
+    return () => { unlisten?.() }
+  }, [])
+
+  // Ctrl+1/2/3/4 to focus panes
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.ctrlKey || e.shiftKey || e.altKey) return
+      const num = parseInt(e.key)
+      if (num >= 1 && num <= 4) {
+        const slotCount = LAYOUT_SLOT_COUNT[useUIStore.getState().layout]
+        if (num <= slotCount) {
+          e.preventDefault()
+          e.stopPropagation()
+          setActivePaneIndex(num - 1)
+        }
+      }
     }
+    window.addEventListener("keydown", handler, { capture: true })
+    return () => window.removeEventListener("keydown", handler, { capture: true })
   }, [])
 
   const handleSelectSession = (sessionId: string) => {
+    if (pendingPaneIndex.current !== null) {
+      // Assign to a specific pane (from empty pane click)
+      setPaneSession(pendingPaneIndex.current, sessionId)
+      setActivePaneIndex(pendingPaneIndex.current)
+      pendingPaneIndex.current = null
+      setShowDialog(false)
+      return
+    }
+    // Normal select: assign to active pane
     setActiveSession(sessionId)
     const wsId = useSessionStore.getState().activeWorkspaceId
     if (wsId) setLastOpenedSession(wsId, sessionId)
@@ -171,9 +201,9 @@ export default function App() {
     setActiveWorkspace(workspaceId)
     const ws = useSessionStore.getState().workspaces.find((w) => w.id === workspaceId)
     if (!ws) return
-    const session = ws.sessions.find(
-      (s) => s.id === ws.lastOpenedSessionId && s.status !== "exited"
-    ) ?? ws.sessions.find((s) => s.status !== "exited")
+    const session =
+      ws.sessions.find((s) => s.id === ws.lastOpenedSessionId && s.status !== "exited") ??
+      ws.sessions.find((s) => s.status !== "exited")
     setActiveSession(session?.id ?? null)
   }
 
@@ -190,6 +220,21 @@ export default function App() {
       const { killSession } = await import("./lib/tauri")
       await killSession(ptyId).catch(() => {})
     }
+  }
+
+  const handleAssignSession = (paneIndex: number, sessionId: string) => {
+    setPaneSession(paneIndex, sessionId)
+    setActivePaneIndex(paneIndex)
+  }
+
+  const handleDetachPane = (paneIndex: number) => {
+    setPaneSession(paneIndex, null)
+  }
+
+  const handleEmptyPaneNewSession = (paneIndex: number) => {
+    pendingPaneIndex.current = paneIndex
+    setActivePaneIndex(paneIndex)
+    setShowDialog(true)
   }
 
   const handleNewSession = async (values: NewSessionValues) => {
@@ -212,12 +257,29 @@ export default function App() {
         cwd: values.cwd,
       })
       sessionPtyMap.current[storeId] = ptyId
-      setActiveSession(storeId)
+      setPtyMapStamp((n) => n + 1)
+
+      if (pendingPaneIndex.current !== null) {
+        setPaneSession(pendingPaneIndex.current, storeId)
+        setActivePaneIndex(pendingPaneIndex.current)
+        pendingPaneIndex.current = null
+      } else {
+        setActiveSession(storeId)
+      }
       setSessionError(null)
     } catch (err) {
       setSessionError(String(err))
+      pendingPaneIndex.current = null
     }
   }
+
+  const handleDialogCancel = () => {
+    setShowDialog(false)
+    pendingPaneIndex.current = null
+  }
+
+  // ptyMapStamp is read here so the component re-renders when PTY map changes
+  void ptyMapStamp
 
   return (
     <div className="flex flex-col h-screen bg-[#0d1117] text-zinc-300 overflow-hidden">
@@ -244,19 +306,20 @@ export default function App() {
           onNewSession={() => setShowDialog(true)}
         />
 
-        <div className="flex flex-col flex-1 min-w-0">
-          {sessions
-            .filter((s) => s.status !== "exited")
-            .map((s) => (
-              <TerminalPane
-                key={s.id}
-                sessionId={sessionPtyMap.current[s.id] ?? s.id}
-                isActive={s.id === activeSessionId}
-                role={s.role}
-                onScrollChange={s.id === activeSessionId ? setIsAtBottom : undefined}
-                scrollToBottomRef={s.id === activeSessionId ? scrollToBottomRef : undefined}
-              />
-            ))}
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <LayoutGrid
+            layout={layout}
+            paneMap={paneMap}
+            activePaneIndex={activePaneIndex}
+            sessions={sessions}
+            sessionPtyMap={sessionPtyMap.current}
+            onPaneFocus={setActivePaneIndex}
+            onScrollChange={setIsAtBottom}
+            scrollToBottomRef={scrollToBottomRef}
+            onAssignSession={handleAssignSession}
+            onNewSession={handleEmptyPaneNewSession}
+            onDetachPane={handleDetachPane}
+          />
         </div>
       </div>
 
@@ -266,13 +329,15 @@ export default function App() {
         isAtBottom={isAtBottom}
         onJumpToBottom={() => scrollToBottomRef.current?.()}
         sessionError={sessionError}
+        layout={layout}
+        onSetLayout={setLayout}
       />
 
       {showDialog && (
         <NewSessionDialog
           recentCwds={recentCwds}
           onConfirm={handleNewSession}
-          onCancel={() => setShowDialog(false)}
+          onCancel={handleDialogCancel}
         />
       )}
     </div>

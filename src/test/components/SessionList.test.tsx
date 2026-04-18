@@ -11,18 +11,18 @@ const sessions: Session[] = [
 
 describe("SessionList", () => {
   it("renders active and idle sessions", () => {
-    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} />)
+    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} onClose={() => {}} />)
     expect(screen.getByText("Claude")).toBeInTheDocument()
     expect(screen.getByText("App")).toBeInTheDocument()
   })
 
   it("shows exited count in collapsed group", () => {
-    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} />)
+    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} onClose={() => {}} />)
     expect(screen.getByText(/EXITED \(1\)/)).toBeInTheDocument()
   })
 
   it("does not show exited session names by default", () => {
-    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} />)
+    render(<SessionList sessions={sessions} activeSessionId="s1" onSelect={() => {}} onClose={() => {}} />)
     expect(screen.queryByText("Old")).not.toBeInTheDocument()
   })
 })

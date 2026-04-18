@@ -2,6 +2,14 @@ export type SessionType = "cmd" | "powershell" | "wsl" | "ssh" // "ssh" reserved
 export type SessionRole = "claude" | "shell" | "server" | "logs" | "git" | "ssh"
 export type SessionStatus = "active" | "idle" | "exited"
 export type SidebarMode = "normal" | "compact"
+export type Layout = "1" | "h2" | "v2" | "4"
+
+export const LAYOUT_SLOT_COUNT: Record<Layout, number> = {
+  "1": 1,
+  "h2": 2,
+  "v2": 2,
+  "4": 4,
+}
 
 export interface Session {
   id: string

@@ -22,6 +22,8 @@ describe("StatusBar", () => {
         allSessions={[]}
         isAtBottom={true}
         onJumpToBottom={() => {}}
+        layout="1"
+        onSetLayout={() => {}}
       />
     )
     expect(screen.getByText("cmd")).toBeInTheDocument()
@@ -36,6 +38,8 @@ describe("StatusBar", () => {
         isAtBottom={true}
         onJumpToBottom={() => {}}
         sessionError="spawn failed"
+        layout="1"
+        onSetLayout={() => {}}
       />
     )
     expect(screen.getByText(/spawn failed/)).toBeInTheDocument()
@@ -49,6 +53,8 @@ describe("StatusBar", () => {
         allSessions={[]}
         isAtBottom={false}
         onJumpToBottom={onJump}
+        layout="1"
+        onSetLayout={() => {}}
       />
     )
     fireEvent.click(screen.getByTitle(/jump/i))
@@ -62,6 +68,8 @@ describe("StatusBar", () => {
         allSessions={[]}
         isAtBottom={true}
         onJumpToBottom={() => {}}
+        layout="1"
+        onSetLayout={() => {}}
       />
     )
     expect(screen.queryByTitle(/jump/i)).not.toBeInTheDocument()
