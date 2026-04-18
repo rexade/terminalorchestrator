@@ -1,5 +1,8 @@
 import { useState } from "react"
+import { getCurrentWindow } from "@tauri-apps/api/window"
 import { Workspace } from "../types/session"
+
+const win = () => getCurrentWindow()
 
 interface ToolbarProps {
   workspaces: Workspace[]
@@ -51,18 +54,20 @@ export function Toolbar({
     setRenaming(false)
   }
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const tag = (e.target as HTMLElement).tagName.toLowerCase()
+    if (!["button", "input", "select", "option"].includes(tag)) {
+      void win().startDragging()
+    }
+  }
+
   return (
     <div
-      data-tauri-drag-region
+      onMouseDown={handleMouseDown}
       className="h-8 bg-[#161b22] border-b border-[#21262d] flex items-center justify-between px-3 select-none shrink-0"
     >
       <div className="flex items-center gap-2">
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#f85149]" />
-          <div className="w-2.5 h-2.5 rounded-full bg-[#d29922]" />
-          <div className="w-2.5 h-2.5 rounded-full bg-[#3fb950]" />
-        </div>
-        <span className="text-zinc-600 text-xs ml-1">termorchestra</span>
+        <span className="text-zinc-600 text-xs">termorchestra</span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -140,6 +145,11 @@ export function Toolbar({
         >
           ⊕
         </button>
+        <div className="flex items-center gap-0.5 ml-2 pl-2 border-l border-[#21262d]">
+          <button onClick={() => win().minimize()} className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-[#21262d] rounded text-xs" title="Minimize">─</button>
+          <button onClick={() => win().toggleMaximize()} className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-[#21262d] rounded text-xs" title="Maximize">□</button>
+          <button onClick={() => win().close()} className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-[#21262d] rounded text-xs" title="Close">✕</button>
+        </div>
       </div>
     </div>
   )
