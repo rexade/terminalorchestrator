@@ -1,5 +1,3 @@
-import "./App.css"
-
 function App() {
   return (
     <div className="flex h-screen bg-neutral-900 text-neutral-100">
