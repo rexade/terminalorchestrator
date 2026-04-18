@@ -18,6 +18,7 @@ export default function App() {
     setActiveWorkspace,
     recentCwds,
     addRecentCwd,
+    setLastOpenedSession,
   } = useSessionStore()
   const {
     activeSessionId,
@@ -50,11 +51,13 @@ export default function App() {
           if (state.activeWorkspaceId) {
             setActiveWorkspace(state.activeWorkspaceId)
           }
-          // Set first non-exited session as active
-          const firstActive = state.workspaces
-            .find((w) => w.id === state.activeWorkspaceId)
-            ?.sessions.find((s) => s.status !== "exited")
-          if (firstActive) setActiveSession(firstActive.id)
+          // Restore last opened session, falling back to first non-exited
+          const activeWs = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
+          const lastSession = activeWs?.sessions.find(
+            (s) => s.id === activeWs.lastOpenedSessionId && s.status !== "exited"
+          )
+          const toActivate = lastSession ?? activeWs?.sessions.find((s) => s.status !== "exited")
+          if (toActivate) setActiveSession(toActivate.id)
 
           // Re-spawn PTYs for restored sessions
           for (const ws of state.workspaces) {
@@ -157,6 +160,21 @@ export default function App() {
     }
   }, [])
 
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSession(sessionId)
+    if (activeWorkspaceId) setLastOpenedSession(activeWorkspaceId, sessionId)
+  }
+
+  const handleSwitchWorkspace = (workspaceId: string) => {
+    setActiveWorkspace(workspaceId)
+    const ws = workspaces.find((w) => w.id === workspaceId)
+    if (!ws) return
+    const session = ws.sessions.find(
+      (s) => s.id === ws.lastOpenedSessionId && s.status !== "exited"
+    ) ?? ws.sessions.find((s) => s.status !== "exited")
+    setActiveSession(session?.id ?? null)
+  }
+
   const handleNewSession = async (values: NewSessionValues) => {
     if (!activeWorkspaceId) return
     setShowDialog(false)
@@ -184,7 +202,7 @@ export default function App() {
       <Toolbar
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
-        onSwitchWorkspace={setActiveWorkspace}
+        onSwitchWorkspace={handleSwitchWorkspace}
         onCreateWorkspace={addWorkspace}
         onNewSession={() => setShowDialog(true)}
       />
@@ -194,7 +212,7 @@ export default function App() {
           sessions={sessions}
           activeSessionId={activeSessionId}
           mode={sidebarMode}
-          onSelect={setActiveSession}
+          onSelect={handleSelectSession}
           onToggleMode={() =>
             setSidebarMode(sidebarMode === "normal" ? "compact" : "normal")
           }

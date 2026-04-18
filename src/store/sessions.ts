@@ -24,6 +24,7 @@ interface SessionStore {
 
   addRecentCwd: (cwd: string) => void
   loadState: (workspaces: Workspace[], activeWorkspaceId: string | null, recentCwds?: string[]) => void
+  setLastOpenedSession: (workspaceId: string, sessionId: string) => void
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
@@ -118,4 +119,11 @@ export const useSessionStore = create<SessionStore>((set) => ({
 
   loadState: (workspaces, activeWorkspaceId, recentCwds = []) =>
     set({ workspaces, activeWorkspaceId, recentCwds }),
+
+  setLastOpenedSession: (workspaceId, sessionId) =>
+    set((state) => ({
+      workspaces: state.workspaces.map((w) =>
+        w.id === workspaceId ? { ...w, lastOpenedSessionId: sessionId } : w
+      ),
+    })),
 }))
