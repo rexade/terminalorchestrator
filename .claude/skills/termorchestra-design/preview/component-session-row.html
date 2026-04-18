@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head>
+<body><div class="card">
+  <div class="eyebrow">Session rows — the core pattern</div>
+  <div style="width:240px;background:#0d1117;border:1px solid #21262d;border-radius:4px;padding:6px 0">
+    <!-- active -->
+    <div style="padding:6px 10px;border-left:2px solid #60a5fa;background:#1f2937">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;min-width:0">
+          <span style="font-size:12px;color:#a1a1aa">⬡</span>
+          <span style="font-size:12px;color:#f4f4f5">Claude</span>
+        </div>
+        <div style="width:6px;height:6px;border-radius:50%;background:#60a5fa;animation:pulse 2s infinite"></div>
+      </div>
+      <div style="font-size:10px;color:#52525b;margin-top:2px;padding-left:18px">~/projects/spritepose</div>
+    </div>
+    <!-- idle -->
+    <div style="padding:6px 10px;border-left:2px solid transparent">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;min-width:0"><span style="font-size:12px;color:#a1a1aa;font-family:var(--font-mono)">$</span><span style="font-size:12px;color:#a1a1aa">Shell</span></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:#4ade80"></div>
+      </div>
+      <div style="font-size:10px;color:#52525b;margin-top:2px;padding-left:18px">~/projects/spritepose</div>
+    </div>
+    <!-- idle server -->
+    <div style="padding:6px 10px;border-left:2px solid transparent">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px;color:#a1a1aa">◈</span><span style="font-size:12px;color:#a1a1aa">Server</span></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:#4ade80"></div>
+      </div>
+      <div style="font-size:10px;color:#52525b;margin-top:2px;padding-left:18px">~/projects/spritepose/api</div>
+    </div>
+    <!-- exited group -->
+    <div style="padding:6px 10px;margin-top:4px;border-top:1px solid #21262d;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#52525b">▸ EXITED (2)</div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+</div></body></html>

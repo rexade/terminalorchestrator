@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head>
+<body><div class="card">
+  <div class="eyebrow">Status colors</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#161b22;border-radius:4px">
+      <div style="width:8px;height:8px;border-radius:50%;background:#60a5fa;box-shadow:0 0 0 0 #60a5fa;animation:pulse 2s infinite"></div>
+      <div><div style="color:#e4e4e7;font-size:12px">active</div><div class="mono tiny">#60a5fa</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#161b22;border-radius:4px">
+      <div style="width:8px;height:8px;border-radius:50%;background:#4ade80"></div>
+      <div><div style="color:#e4e4e7;font-size:12px">idle</div><div class="mono tiny">#4ade80</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#161b22;border-radius:4px">
+      <div style="width:8px;height:8px;border-radius:50%;background:#52525b;opacity:.4"></div>
+      <div><div style="color:#e4e4e7;font-size:12px">exited</div><div class="mono tiny">#52525b/40</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#161b22;border-radius:4px">
+      <div style="color:#ef4444;font-size:12px">⚠</div>
+      <div><div style="color:#e4e4e7;font-size:12px">error</div><div class="mono tiny">#ef4444</div></div>
+    </div>
+  </div>
+  <div class="row" style="gap:8px;padding-top:6px;border-top:1px solid #21262d">
+    <span class="eyebrow" style="color:#52525b">chrome dots</span>
+    <div style="width:10px;height:10px;border-radius:50%;background:#f85149"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:#d29922"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:#3fb950"></div>
+    <span class="mono tiny" style="margin-left:6px">#f85149 · #d29922 · #3fb950</span>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+</div></body></html>

@@ -1,0 +1,163 @@
+/* =========================================================================
+   Termorchestra — Colors & Type
+   A dark, terminal-first system. Pulled directly from the codebase:
+   src/App.tsx, Toolbar.tsx, Sidebar.tsx, TerminalPane.tsx.
+   All colors are the exact hex values used in Tailwind className strings.
+   ========================================================================= */
+
+@font-face {
+  font-family: "Cascadia Code";
+  src: local("Cascadia Code"), local("CascadiaCode");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- Surfaces (GitHub-dark family, used throughout the app) ---- */
+  --bg-app:        #0d1117;   /* App.tsx root, Sidebar.tsx */
+  --bg-chrome:     #161b22;   /* Toolbar, StatusBar, NewSessionDialog */
+  --bg-elev-1:     #21262d;   /* Buttons, inputs, recent-cwd select */
+  --bg-active:     #1f2937;   /* Active session row highlight */
+  --bg-hover:      #161b22;   /* Session row hover */
+
+  /* ---------- Borders ---------------------------------------------------- */
+  --border-1:      #21262d;   /* Toolbar/StatusBar divider, section rules */
+  --border-2:      #30363d;   /* Dialog, input borders */
+
+  /* ---------- Text (Tailwind zinc scale, matched to classes in code) --- */
+  --fg-1:          #f4f4f5;   /* zinc-100 — active session label */
+  --fg-2:          #e4e4e7;   /* zinc-200 — dialog title, input value */
+  --fg-3:          #a1a1aa;   /* zinc-400 — default session label, workspace switcher */
+  --fg-4:          #71717a;   /* zinc-500 — muted label, form label */
+  --fg-5:          #52525b;   /* zinc-600 — tiny captions, brand wordmark, cwd preview */
+  --fg-6:          #3f3f46;   /* zinc-700 — cwd in statusbar */
+
+  /* Terminal foreground (xterm theme) */
+  --term-fg:       #e6edf3;
+
+  /* ---------- Accent (blue, two roles) --------------------------------- */
+  --accent:        #60a5fa;   /* blue-400 — active-session dot + left rule, cursor color 58a6ff ≈ */
+  --accent-hover:  #93c5fd;   /* blue-300 — jump-to-latest hover */
+  --accent-solid:  #2563eb;   /* blue-600 — primary button fill */
+  --accent-solid-h:#3b82f6;   /* blue-500 — primary button hover */
+  --accent-ghost:  rgb(37 99 235 / 0.20);  /* blue-600/20 — selected role tile */
+  --accent-ring:   rgb(59 130 246 / 0.50); /* blue-500/50 — selected role tile border */
+  --cursor:        #58a6ff;   /* xterm cursor */
+  --selection:     #1f6feb66; /* xterm selection */
+
+  /* ---------- Semantic status ------------------------------------------ */
+  --status-active: #60a5fa;   /* blue-400 — "active" session (animate-pulse) */
+  --status-idle:   #4ade80;   /* green-400 — "idle" */
+  --status-exit:   #52525b;   /* zinc-600 @ 40% opacity — exited */
+  --status-error:  #ef4444;   /* red-500 — ⚠ SSH Pi in status bar */
+
+  /* ---------- Traffic-light chrome dots -------------------------------- */
+  --tl-red:        #f85149;
+  --tl-yel:        #d29922;
+  --tl-grn:        #3fb950;
+
+  /* ---------- Type stack ----------------------------------------------- */
+  --font-ui:       ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+  --font-mono:     "Cascadia Code", "Fira Code", "Consolas", "SF Mono", Menlo,
+                   monospace;
+
+  /* ---------- Tailwind size scale used in the app --------------------- */
+  /* text-[9px]  — sidebar SESSIONS eyebrow (tracking-widest uppercase)   */
+  /* text-[10px] — cwd under session name, form labels, status bar       */
+  /* text-xs     — 12px: session name, toolbar, buttons, dialog body     */
+  /* text-sm     — 14px: dialog title, compact sidebar icons             */
+  /* text-base   — 16px: ⊕ new-session glyph                              */
+  /* xterm font  — 13px, line-height 1.5, Cascadia Code                   */
+
+  --step-9:   9px;
+  --step-10: 10px;
+  --step-12: 12px;  /* text-xs */
+  --step-13: 13px;  /* xterm */
+  --step-14: 14px;  /* text-sm */
+  --step-16: 16px;  /* text-base */
+
+  /* ---------- Spacing scale (Tailwind tokens actually used) ----------- */
+  --h-toolbar:  2rem;    /* h-8 — 32px top chrome */
+  --h-status:   1.25rem; /* h-5 — 20px bottom chrome */
+  --w-sidebar:  10rem;   /* w-40 — 160px normal */
+  --w-sidebar-c: 2.75rem;/* w-11 — 44px compact */
+
+  /* ---------- Radii (tiny; terminals are sharp-edged) ----------------- */
+  --r-sm:   0.125rem;  /* 2px — Tailwind default `rounded` is 4px; code uses plain `rounded` ≈ 4px */
+  --r-md:   0.25rem;   /* 4px — buttons, inputs */
+  --r-lg:   0.5rem;    /* 8px — NewSessionDialog */
+  --r-full: 9999px;    /* status dots, traffic lights */
+}
+
+/* =========================================================================
+   Semantic element styles
+   Use these on raw HTML in design mocks for consistent output.
+   ========================================================================= */
+
+html, body {
+  background: var(--bg-app);
+  color: var(--fg-3);
+  font-family: var(--font-ui);
+  font-size: var(--step-12);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, .h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--fg-2);
+  letter-spacing: -0.01em;
+}
+
+h2, .h2 {
+  font-size: var(--step-14);
+  font-weight: 500;
+  color: var(--fg-2);
+}
+
+h3, .h3 {
+  font-size: var(--step-12);
+  font-weight: 500;
+  color: var(--fg-3);
+}
+
+/* Eyebrow label — SESSIONS, ROLE, TYPE, FOLDER, EXITED (n) */
+.eyebrow, label.eyebrow {
+  font-size: var(--step-10);
+  color: var(--fg-4);
+  text-transform: uppercase;
+  letter-spacing: 0.15em; /* tracking-widest */
+  font-weight: 400;
+}
+
+/* Very-small eyebrow — the sidebar "SESSIONS" is 9px */
+.eyebrow-xs {
+  font-size: var(--step-9);
+  color: var(--fg-5);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+p, .body {
+  font-size: var(--step-12);
+  color: var(--fg-3);
+}
+
+small, .caption {
+  font-size: var(--step-10);
+  color: var(--fg-5);
+}
+
+code, kbd, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: var(--step-13);
+  line-height: 1.5;
+  color: var(--term-fg);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-1);
+}

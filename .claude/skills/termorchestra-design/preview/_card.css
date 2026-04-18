@@ -1,0 +1,38 @@
+/* Shared card styles for all preview/*.html.
+   Every card is a self-contained 700px-wide specimen on the app surface. */
+
+@import url("../colors_and_type.css");
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-app);
+  color: var(--fg-3);
+  font-family: var(--font-ui);
+  font-size: var(--step-12);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 700px;
+  padding: 20px 22px;
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.row { display: flex; align-items: center; gap: 12px; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.eyebrow {
+  font-size: var(--step-10);
+  color: var(--fg-5);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.mono { font-family: var(--font-mono); font-size: var(--step-12); }
+.tiny { font-size: var(--step-10); color: var(--fg-5); }
+.label-xs { font-size: var(--step-10); color: var(--fg-4); }

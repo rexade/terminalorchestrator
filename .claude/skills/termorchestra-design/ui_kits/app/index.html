@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Termorchestra — UI kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+  :root { --font-mono: "Cascadia Code", "Fira Code", Consolas, monospace; }
+  html, body, #root { height: 100%; margin: 0; }
+  body { background: #000; color: #a1a1aa; font-family: var(--font-ui); overflow: hidden; }
+  /* App window frame — simulates the Tauri 800x600 window centered on OS bg */
+  .app-window {
+    width: 920px; height: 600px; margin: 0 auto; margin-top: 16px;
+    display: flex; flex-direction: column;
+    background: #0d1117; overflow: hidden;
+    border-radius: 6px; border: 1px solid #21262d;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  button:focus, select:focus, input:focus { outline: none; }
+  @keyframes to-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes to-blink { to { visibility: hidden; } }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0d1117; }
+  ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #30363d; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="tokens.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="Chrome.jsx"></script>
+<script type="text/babel" src="Sidebar.jsx"></script>
+<script type="text/babel" src="NewSessionDialog.jsx"></script>
+<script type="text/babel" src="TerminalPane.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+const RECENT = [
+  "~/projects/spritepose",
+  "~/code/termorchestra",
+  "~/work/cloudlab-api",
+];
+
+const SEED_WORKSPACES = [
+  {
+    id: "ws-cloud",
+    name: "CloudLab",
+    sessions: [
+      { id: "s-claude", name: "Claude",   role: "claude", type: "local", status: "active", cwd: "~/projects/spritepose" },
+      { id: "s-shell",  name: "App",      role: "shell",  type: "local", status: "idle",   cwd: "~/projects/spritepose" },
+      { id: "s-server", name: "Server",   role: "server", type: "local", status: "idle",   cwd: "~/projects/spritepose" },
+      { id: "s-logs",   name: "Logs",     role: "logs",   type: "local", status: "idle",   cwd: "/var/log" },
+      { id: "s-ssh",    name: "SSH Pi",   role: "ssh",    type: "ssh",   status: "exited", cwd: "pi@raspberrypi.local" },
+      { id: "s-git",    name: "Git",      role: "git",    type: "local", status: "exited", cwd: "~/projects/spritepose" },
+    ],
+  },
+  {
+    id: "ws-personal",
+    name: "Personal",
+    sessions: [
+      { id: "p-shell", name: "Shell", role: "shell", type: "local", status: "idle", cwd: "~" },
+    ],
+  },
+];
+
+function App() {
+  const T = window.TO_TOKENS;
+  const [workspaces, setWorkspaces] = useState(SEED_WORKSPACES);
+  const [activeWs, setActiveWs] = useState("ws-cloud");
+  const [activeSession, setActiveSession] = useState("s-claude");
+  const [sidebarMode, setSidebarMode] = useState("normal");
+  const [showDialog, setShowDialog] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+
+  const ws = workspaces.find((w) => w.id === activeWs);
+  const sessions = ws?.sessions ?? [];
+  const active = sessions.find((s) => s.id === activeSession) ?? null;
+
+  const addWorkspace = (name) => {
+    const id = "ws-" + Math.random().toString(36).slice(2, 7);
+    setWorkspaces((WS) => [...WS, { id, name, sessions: [] }]);
+    setActiveWs(id);
+  };
+
+  const addSession = (vals) => {
+    const id = "s-" + Math.random().toString(36).slice(2, 7);
+    const session = {
+      id, name: vals.name, role: vals.role, type: vals.sessionType,
+      status: "active", cwd: vals.cwd,
+    };
+    setWorkspaces((WS) => WS.map((w) => w.id === activeWs ? { ...w, sessions: [...w.sessions, session] } : w));
+    setActiveSession(id);
+    setShowDialog(false);
+  };
+
+  // Keep sidebar selection valid when switching workspaces
+  useEffect(() => {
+    const first = sessions.find((s) => s.status !== "exited");
+    if (!sessions.find((s) => s.id === activeSession) && first) {
+      setActiveSession(first.id);
+    }
+  }, [activeWs]);
+
+  return (
+    <div className="app-window">
+      <Toolbar
+        workspaces={workspaces}
+        activeWs={activeWs}
+        onSwitchWs={setActiveWs}
+        onCreateWs={addWorkspace}
+        onNewSession={() => setShowDialog(true)}
+      />
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        <Sidebar
+          sessions={sessions}
+          activeSessionId={activeSession}
+          mode={sidebarMode}
+          onSelect={setActiveSession}
+          onToggleMode={() => setSidebarMode(sidebarMode === "normal" ? "compact" : "normal")}
+          onNewSession={() => setShowDialog(true)}
+        />
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+          {sessions.filter((s) => s.status !== "exited").map((s) => (
+            <TerminalPane
+              key={s.id}
+              sessionId={s.id}
+              role={s.role}
+              isActive={s.id === activeSession}
+            />
+          ))}
+        </div>
+      </div>
+      <StatusBar
+        activeSession={active}
+        allSessions={sessions}
+        isAtBottom={isAtBottom}
+        onJumpToBottom={() => setIsAtBottom(true)}
+      />
+      {showDialog && (
+        <NewSessionDialog
+          recentCwds={RECENT}
+          onConfirm={addSession}
+          onCancel={() => setShowDialog(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
