@@ -25,8 +25,8 @@ impl Default for PtySpawnConfig {
         Self {
             cwd: "~".to_string(),
             shell,
-            cols: 220,
-            rows: 50,
+            cols: 80,
+            rows: 24,
         }
     }
 }
