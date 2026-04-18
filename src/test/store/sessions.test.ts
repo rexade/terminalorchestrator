@@ -108,6 +108,14 @@ describe("useSessionStore", () => {
     expect(useSessionStore.getState().workspaces[0].lastOpenedSessionId).toBeNull()
   })
 
+  it("renameWorkspace updates the workspace name", () => {
+    const { addWorkspace, renameWorkspace } = useSessionStore.getState()
+    addWorkspace("Old Name")
+    const wsId = useSessionStore.getState().workspaces[0].id
+    renameWorkspace(wsId, "New Name")
+    expect(useSessionStore.getState().workspaces[0].name).toBe("New Name")
+  })
+
   it("loadState restores workspaces, activeWorkspaceId, and recentCwds", () => {
     const { result } = renderHook(() => useSessionStore())
     const ws: import("../../types/session").Workspace = {

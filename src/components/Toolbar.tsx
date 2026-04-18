@@ -6,6 +6,8 @@ interface ToolbarProps {
   activeWorkspaceId: string | null
   onSwitchWorkspace: (id: string) => void
   onCreateWorkspace: (name: string) => void
+  onRenameWorkspace: (id: string, name: string) => void
+  onDeleteWorkspace: (id: string) => void
   onNewSession: () => void
 }
 
@@ -14,10 +16,14 @@ export function Toolbar({
   activeWorkspaceId,
   onSwitchWorkspace,
   onCreateWorkspace,
+  onRenameWorkspace,
+  onDeleteWorkspace,
   onNewSession,
 }: ToolbarProps) {
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState("")
+  const [renaming, setRenaming] = useState(false)
+  const [renameName, setRenameName] = useState("")
 
   const handleCreate = () => {
     if (newName.trim()) {
@@ -25,6 +31,23 @@ export function Toolbar({
       setNewName("")
       setCreating(false)
     }
+  }
+
+  const handleStartRename = () => {
+    const activeWs = workspaces.find((w) => w.id === activeWorkspaceId)
+    setRenameName(activeWs?.name ?? "")
+    setRenaming(true)
+  }
+
+  const handleRename = () => {
+    if (renameName.trim() && activeWorkspaceId) {
+      onRenameWorkspace(activeWorkspaceId, renameName.trim())
+    }
+    setRenaming(false)
+  }
+
+  const handleCancelRename = () => {
+    setRenaming(false)
   }
 
   return (
@@ -54,6 +77,19 @@ export function Toolbar({
             placeholder="Workspace name..."
             className="bg-[#21262d] text-zinc-200 text-xs border border-[#30363d] rounded px-2 py-0.5 w-36 outline-none"
           />
+        ) : renaming ? (
+          <input
+            autoFocus
+            value={renameName}
+            onChange={(e) => setRenameName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRename()
+              if (e.key === "Escape") handleCancelRename()
+            }}
+            onBlur={handleCancelRename}
+            placeholder="Workspace name..."
+            className="bg-[#21262d] text-zinc-200 text-xs border border-[#30363d] rounded px-2 py-0.5 w-36 outline-none"
+          />
         ) : (
           <>
             {workspaces.length > 0 && (
@@ -76,6 +112,24 @@ export function Toolbar({
             >
               +ws
             </button>
+            {activeWorkspaceId && (
+              <button
+                onClick={handleStartRename}
+                className="text-zinc-600 hover:text-zinc-400 text-xs"
+                title="Rename workspace"
+              >
+                ren
+              </button>
+            )}
+            {workspaces.length > 1 && (
+              <button
+                onClick={() => onDeleteWorkspace(activeWorkspaceId!)}
+                className="text-zinc-600 hover:text-zinc-400 text-xs"
+                title="Delete workspace"
+              >
+                ×
+              </button>
+            )}
           </>
         )}
         <button

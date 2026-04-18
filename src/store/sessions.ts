@@ -15,6 +15,7 @@ interface SessionStore {
 
   addWorkspace: (name: string) => void
   removeWorkspace: (id: string) => void
+  renameWorkspace: (id: string, name: string) => void
   setActiveWorkspace: (id: string) => void
 
   addSession: (workspaceId: string, params: NewSessionParams) => string
@@ -55,6 +56,13 @@ export const useSessionStore = create<SessionStore>((set) => ({
           : state.activeWorkspaceId
       return { workspaces: remaining, activeWorkspaceId: activeId }
     }),
+
+  renameWorkspace: (id, name) =>
+    set((state) => ({
+      workspaces: state.workspaces.map((w) =>
+        w.id === id ? { ...w, name } : w
+      ),
+    })),
 
   setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
 

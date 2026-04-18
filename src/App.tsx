@@ -14,6 +14,8 @@ export default function App() {
     workspaces,
     activeWorkspaceId,
     addWorkspace,
+    removeWorkspace,
+    renameWorkspace,
     addSession,
     setActiveWorkspace,
     recentCwds,
@@ -205,6 +207,8 @@ export default function App() {
         activeWorkspaceId={activeWorkspaceId}
         onSwitchWorkspace={handleSwitchWorkspace}
         onCreateWorkspace={addWorkspace}
+        onRenameWorkspace={renameWorkspace}
+        onDeleteWorkspace={removeWorkspace}
         onNewSession={() => setShowDialog(true)}
       />
 
