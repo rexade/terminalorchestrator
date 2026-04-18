@@ -67,10 +67,6 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
       })
     }
 
-    if (scrollToBottomRef) {
-      scrollToBottomRef.current = () => term.scrollToBottom()
-    }
-
     const unlistenPromise = listen<number[]>(`pty_output_${sessionId}`, (event) => {
       term.write(new Uint8Array(event.payload))
     })
@@ -95,10 +91,17 @@ export function TerminalPane({ sessionId, isActive, role, onScrollChange, scroll
       unlistenPromise.then((fn) => fn())
       resizeObserver.disconnect()
       promptObserver?.disconnect()
-      if (scrollToBottomRef) scrollToBottomRef.current = null
       term.dispose()
     }
   }, [sessionId])
+
+  useEffect(() => {
+    if (!scrollToBottomRef || !termRef.current) return
+    scrollToBottomRef.current = () => termRef.current!.scrollToBottom()
+    return () => {
+      if (scrollToBottomRef) scrollToBottomRef.current = null
+    }
+  }, [scrollToBottomRef])
 
   return (
     <div

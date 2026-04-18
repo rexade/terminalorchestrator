@@ -34,6 +34,7 @@ export default function App() {
   const [showDialog, setShowDialog] = useState(false)
   const sessionPtyMap = useRef<Record<string, string>>({})
   const scrollToBottomRef = useRef<(() => void) | null>(null)
+  const hasLoaded = useRef(false)
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
   const sessions = activeWorkspace?.sessions ?? []
@@ -63,6 +64,7 @@ export default function App() {
           )
           const toActivate = lastSession ?? activeWs?.sessions.find((s) => s.status !== "exited")
           if (toActivate) setActiveSession(toActivate.id)
+          hasLoaded.current = true
 
           // Re-spawn PTYs for restored sessions
           for (const ws of state.workspaces) {
@@ -88,9 +90,12 @@ export default function App() {
               }
             }
           }
+        } else {
+          hasLoaded.current = true
         }
       } catch {
         // Corrupted state — start fresh
+        hasLoaded.current = true
       }
     })()
   }, [])
@@ -98,6 +103,7 @@ export default function App() {
   // Auto-save whenever workspaces, activeWorkspaceId, or sidebarMode changes
   const sessionState = useSessionStore()
   useEffect(() => {
+    if (!hasLoaded.current) return
     const toSave: AppState = {
       workspaces: sessionState.workspaces,
       activeWorkspaceId: sessionState.activeWorkspaceId,
@@ -141,7 +147,8 @@ export default function App() {
           const next = useSessionStore
             .getState()
             .workspaces
-            .flatMap((w) => w.sessions)
+            .find((w) => w.id === ws.id)
+            ?.sessions
             .find((s) => s.status !== "exited" && s.id !== storeId)
           setActiveSession(next?.id ?? null)
         }

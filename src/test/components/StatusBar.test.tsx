@@ -21,7 +21,6 @@ describe("StatusBar", () => {
         activeSession={makeSession()}
         allSessions={[]}
         isAtBottom={true}
-        activeSessionId="s1"
         onJumpToBottom={() => {}}
       />
     )
@@ -39,7 +38,6 @@ describe("StatusBar", () => {
         activeSession={makeSession()}
         allSessions={sessions}
         isAtBottom={true}
-        activeSessionId="s1"
         onJumpToBottom={() => {}}
       />
     )
@@ -53,7 +51,6 @@ describe("StatusBar", () => {
         activeSession={makeSession()}
         allSessions={[]}
         isAtBottom={false}
-        activeSessionId="s1"
         onJumpToBottom={onJump}
       />
     )
@@ -67,7 +64,6 @@ describe("StatusBar", () => {
         activeSession={makeSession()}
         allSessions={[]}
         isAtBottom={true}
-        activeSessionId="s1"
         onJumpToBottom={() => {}}
       />
     )
