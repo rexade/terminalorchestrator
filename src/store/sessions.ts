@@ -46,7 +46,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
   },
 
   removeWorkspace: (id) =>
-    set((s) => ({ workspaces: s.workspaces.filter((w) => w.id !== id) })),
+    set((state) => {
+      const remaining = state.workspaces.filter((w) => w.id !== id)
+      const activeId =
+        state.activeWorkspaceId === id
+          ? (remaining[0]?.id ?? null)
+          : state.activeWorkspaceId
+      return { workspaces: remaining, activeWorkspaceId: activeId }
+    }),
 
   setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
 

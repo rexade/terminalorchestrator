@@ -37,8 +37,9 @@ export default function App() {
 
   // Load persisted state on mount
   useEffect(() => {
-    loadPersistedState().then((json) => {
+    (async () => {
       try {
+        const json = await loadPersistedState()
         const state: AppState = JSON.parse(json)
         if (state.workspaces?.length) {
           useSessionStore.getState().loadState(
@@ -54,11 +55,36 @@ export default function App() {
             .find((w) => w.id === state.activeWorkspaceId)
             ?.sessions.find((s) => s.status !== "exited")
           if (firstActive) setActiveSession(firstActive.id)
+
+          // Re-spawn PTYs for restored sessions
+          for (const ws of state.workspaces) {
+            for (const session of ws.sessions) {
+              if (session.status === "exited") continue
+              try {
+                const ptyId = await createSession({
+                  name: session.name,
+                  role: session.role,
+                  sessionType: session.type,
+                  cwd: session.cwd,
+                  cols: 220,
+                  rows: 50,
+                })
+                sessionPtyMap.current[session.id] = ptyId
+              } catch {
+                // If spawn fails, mark session as exited
+                useSessionStore.getState().setSessionStatus(
+                  ws.id,
+                  session.id,
+                  "exited"
+                )
+              }
+            }
+          }
         }
       } catch {
         // Corrupted state — start fresh
       }
-    })
+    })()
   }, [])
 
   // Auto-save whenever workspaces or activeWorkspaceId changes

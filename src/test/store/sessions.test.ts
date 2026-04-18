@@ -73,6 +73,18 @@ describe("useSessionStore", () => {
     expect(result.current.activeWorkspaceId).toBe(firstId)
   })
 
+  it("removeWorkspace clears activeWorkspaceId if active workspace is removed", () => {
+    const { result } = renderHook(() => useSessionStore())
+    act(() => result.current.addWorkspace("First"))
+    act(() => result.current.addWorkspace("Second"))
+    const firstId = result.current.workspaces[0].id
+    const secondId = result.current.workspaces[1].id
+    act(() => result.current.setActiveWorkspace(secondId))
+    act(() => result.current.removeWorkspace(secondId))
+    // activeWorkspaceId should fall back to first workspace
+    expect(result.current.activeWorkspaceId).toBe(firstId)
+  })
+
   it("loadState restores workspaces, activeWorkspaceId, and recentCwds", () => {
     const { result } = renderHook(() => useSessionStore())
     const ws: import("../../types/session").Workspace = {
