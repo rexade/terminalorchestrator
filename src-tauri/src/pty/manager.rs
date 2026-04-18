@@ -11,6 +11,7 @@ pub struct SpawnedPty {
 pub struct PtySpawnConfig {
     pub cwd: String,
     pub shell: String,
+    pub args: Vec<String>,
     pub cols: u16,
     pub rows: u16,
 }
@@ -25,6 +26,7 @@ impl Default for PtySpawnConfig {
         Self {
             cwd: "~".to_string(),
             shell,
+            args: vec![],
             cols: 80,
             rows: 24,
         }
@@ -58,6 +60,9 @@ where
         .map_err(|e| e.to_string())?;
 
     let mut cmd = CommandBuilder::new(&config.shell);
+    for arg in &config.args {
+        cmd.arg(arg);
+    }
     cmd.cwd(resolve_cwd(&config.cwd));
 
     let child = pair.slave.spawn_command(cmd).map_err(|e| e.to_string())?;

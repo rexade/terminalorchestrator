@@ -17,29 +17,34 @@ pub async fn create_session(
     state: State<'_, AppState>,
     app: AppHandle,
 ) -> Result<String, String> {
-    let _ = (name, role);
+    let _ = name;
     let session_id = Uuid::new_v4().to_string();
     let id_clone = session_id.clone();
     let app_clone = app.clone();
 
-    let shell = match session_type {
-        SessionType::Wsl => "wsl.exe".to_string(),
-        SessionType::PowerShell => "powershell.exe".to_string(),
+    let (shell, args, spawn_cwd) = match session_type {
+        SessionType::Wsl => (
+            "wsl.exe".to_string(),
+            vec!["--cd".to_string(), cwd.clone()],
+            "~".to_string(), // WSL handles cwd via --cd arg
+        ),
+        SessionType::PowerShell => (
+            "powershell.exe".to_string(),
+            vec![],
+            cwd.clone(),
+        ),
         _ => {
             #[cfg(target_os = "windows")]
-            {
-                "cmd.exe".to_string()
-            }
+            { ("cmd.exe".to_string(), vec![], cwd.clone()) }
             #[cfg(not(target_os = "windows"))]
-            {
-                std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string())
-            }
+            { (std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string()), vec![], cwd.clone()) }
         }
     };
 
     let config = PtySpawnConfig {
-        cwd,
+        cwd: spawn_cwd,
         shell,
+        args,
         cols,
         rows,
     };
@@ -62,8 +67,13 @@ pub async fn create_session(
         },
     )?;
 
+    let mut writer = pty.writer;
+    if role == SessionRole::Claude {
+        let _ = writer.write_all(b"claude\r\n");
+    }
+
     let mut ptys = state.ptys.lock().map_err(|e| e.to_string())?;
-    ptys.insert(session_id.clone(), PtyHandle { writer: pty.writer, master: pty.master });
+    ptys.insert(session_id.clone(), PtyHandle { writer, master: pty.master });
 
     Ok(session_id)
 }
