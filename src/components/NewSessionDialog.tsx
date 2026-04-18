@@ -37,9 +37,13 @@ export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSession
   const label = ROLES.find((r) => r.role === role)?.label ?? "Shell"
 
   const handleBrowse = async () => {
-    const picked = await open({ directory: true, multiple: false })
-    if (picked && typeof picked === "string") {
-      setCwd(picked)
+    try {
+      const picked = await open({ directory: true, multiple: false, defaultPath: cwd })
+      if (picked && typeof picked === "string") {
+        setCwd(picked)
+      }
+    } catch {
+      // dialog dismissed or IPC unavailable
     }
   }
 
@@ -107,7 +111,7 @@ export function NewSessionDialog({ recentCwds, onConfirm, onCancel }: NewSession
           <button
             type="button"
             onClick={handleBrowse}
-            className="mt-1.5 w-full bg-[#21262d] text-zinc-500 text-xs py-1 rounded hover:text-zinc-300"
+            className="mt-1.5 w-full bg-[#21262d] text-zinc-500 text-xs py-1 rounded hover:text-zinc-300 border border-[#30363d]"
           >
             Browse
           </button>

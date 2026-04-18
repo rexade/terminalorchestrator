@@ -26,10 +26,13 @@ describe("NewSessionDialog", () => {
     render(<NewSessionDialog {...baseProps} />)
     fireEvent.click(screen.getByText("Browse"))
     await waitFor(() => {
-      expect(mockOpen).toHaveBeenCalledWith({ directory: true, multiple: false })
+      expect(mockOpen).toHaveBeenCalledWith({ directory: true, multiple: false, defaultPath: "~/projects/foo" })
     })
     // After picking, the select value should reflect the picked path
-    // (The select will have the new value in its options or the cwd state updates)
+    await waitFor(() => {
+      const select = screen.getByRole("combobox")
+      expect((select as HTMLSelectElement).value).toBe("/home/user/picked-folder")
+    })
   })
 
   it("does nothing when picker is cancelled (returns null)", async () => {
