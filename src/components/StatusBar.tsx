@@ -40,6 +40,13 @@ export function StatusBar({
             ↓
           </button>
         )}
+        <button
+          disabled
+          title="Overview (v1.1)"
+          className="text-zinc-700 cursor-not-allowed opacity-40 leading-none"
+        >
+          ⊞
+        </button>
       </div>
     </div>
   )

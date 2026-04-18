@@ -53,6 +53,9 @@ export default function App() {
           if (state.activeWorkspaceId) {
             setActiveWorkspace(state.activeWorkspaceId)
           }
+          if (state.sidebarMode === "normal" || state.sidebarMode === "compact") {
+            setSidebarMode(state.sidebarMode)
+          }
           // Restore last opened session, falling back to first non-exited
           const activeWs = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
           const lastSession = activeWs?.sessions.find(
@@ -92,16 +95,17 @@ export default function App() {
     })()
   }, [])
 
-  // Auto-save whenever workspaces or activeWorkspaceId changes
+  // Auto-save whenever workspaces, activeWorkspaceId, or sidebarMode changes
   const sessionState = useSessionStore()
   useEffect(() => {
     const toSave: AppState = {
       workspaces: sessionState.workspaces,
       activeWorkspaceId: sessionState.activeWorkspaceId,
       recentCwds: sessionState.recentCwds,
+      sidebarMode,
     }
     savePersistedState(JSON.stringify(toSave))
-  }, [sessionState.workspaces, sessionState.activeWorkspaceId, sessionState.recentCwds])
+  }, [sessionState.workspaces, sessionState.activeWorkspaceId, sessionState.recentCwds, sidebarMode])
 
   // Seed first workspace on first run (only if nothing was loaded from persistence)
   useEffect(() => {
@@ -113,19 +117,6 @@ export default function App() {
     }, 100)
     return () => clearTimeout(timer)
   }, [])
-
-  // Restore sidebar mode from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebarMode") as "normal" | "compact" | null
-    if (saved === "normal" || saved === "compact") {
-      setSidebarMode(saved)
-    }
-  }, [])
-
-  // Save sidebar mode to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("sidebarMode", sidebarMode)
-  }, [sidebarMode])
 
   // Listen for session_exited events from the Rust backend
   useEffect(() => {

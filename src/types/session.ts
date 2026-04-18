@@ -24,6 +24,7 @@ export interface AppState {
   workspaces: Workspace[]
   activeWorkspaceId: string | null
   recentCwds?: string[]
+  sidebarMode?: SidebarMode
 }
 
 export const ROLE_ICONS: Record<SessionRole, string> = {
